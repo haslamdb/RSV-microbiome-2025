@@ -208,11 +208,15 @@ def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
         pc1 = pcoa_results.samples.iloc[:, 0]
         pc2 = pcoa_results.samples.iloc[:, 1]
         
+        # Filter metadata to only include samples in the distance matrix
+        common_samples = set(beta_dm.ids).intersection(set(metadata_df.index))
+        filtered_metadata = metadata_df.loc[list(common_samples)]
+        
         # Create a DataFrame for plotting
         plot_df = pd.DataFrame({
             'PC1': pc1,
             'PC2': pc2,
-            var: metadata_df.loc[beta_dm.ids, var]
+            var: filtered_metadata.loc[beta_dm.ids, var]
         })
         
         # Calculate variance explained
@@ -250,6 +254,7 @@ def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
         print(f"Groups in {var}: {metadata_df[var].unique()}")
         
         return fig
+    
 
 def main():
     """Main function to calculate diversity metrics."""
@@ -422,16 +427,24 @@ def main():
         # Join alpha diversity with metadata for time plot
         alpha_time_df = pd.DataFrame(index=alpha_df.index)
         for metric in alpha_metrics:
-            # Look for the metric in a case-insensitive way
-            for col in alpha_df.columns:
-                if col.lower() == metric.lower():
-                    alpha_time_df[metric] = alpha_df[col]
-                    break
-        
-        # Add time variable
-        time_data = metadata_df[time_var]
-        alpha_time_df[time_var] = time_data.loc[alpha_time_df.index]
-        
+            # Try exact match first
+            if metric in alpha_df.columns:
+                alpha_time_df[metric] = alpha_df[metric]
+            else:
+                # Try case-insensitive match
+                for col in alpha_df.columns:
+                    if col.lower() == metric.lower() or (
+                        metric.lower() == "observed_otus" and "observed" in col.lower()
+                    ):
+                        alpha_time_df[metric] = alpha_df[col]
+                        print(f"Matched '{metric}' with column '{col}'")
+                        break
+                else:
+                    print(f"  Warning: Metric '{metric}' not found in alpha diversity data")
+                # Add time variable
+                time_data = metadata_df[time_var]
+                alpha_time_df[time_var] = time_data.loc[alpha_time_df.index]
+                
         # Create a plot for each metric
         for metric in alpha_metrics:
             if metric not in alpha_time_df.columns:
