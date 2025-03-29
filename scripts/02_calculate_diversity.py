@@ -60,66 +60,135 @@ def parse_args():
                        help='Path to configuration file')
     return parser.parse_args()
 
+# Add this to your code before beta diversity calculation
+def preprocess_for_beta_diversity(abundance_df):
+    """
+    Preprocess abundance data for beta diversity analysis.
+    """
+    # Convert to relative abundance
+    rel_abundance = abundance_df.div(abundance_df.sum(axis=0), axis=1) * 100
+    
+    # Apply CLR transformation to handle compositionality
+    from skbio.stats.composition import clr
+    import numpy as np
+    
+    # Replace zeros with small pseudocount
+    min_val = rel_abundance[rel_abundance > 0].min().min() / 2
+    rel_abundance_pseudo = rel_abundance.replace(0, min_val)
+    
+    # Apply CLR transformation
+    clr_data = pd.DataFrame(
+        clr(rel_abundance_pseudo.values),
+        index=rel_abundance.index,
+        columns=rel_abundance.columns
+    )
+    
+    return clr_data
 
-def safe_calculate_beta_diversity(abundance_df, metric='braycurtis'):
+# Filter species with very low abundance or prevalence
+def filter_low_abundance_species(abundance_df, min_prevalence=0.1, min_abundance=0.01):
+    """Filter out low abundance and low prevalence species"""
+    # Calculate prevalence (fraction of samples where species is present)
+    prevalence = (abundance_df > 0).mean(axis=1)
+    
+    # Calculate mean abundance
+    mean_abundance = abundance_df.mean(axis=1)
+    
+    # Filter based on thresholds
+    keep_species = (prevalence >= min_prevalence) & (mean_abundance >= min_abundance)
+    
+    print(f"Filtering from {len(abundance_df)} to {keep_species.sum()} species")
+    
+    return abundance_df.loc[keep_species]
+
+def plot_nmds_ordination(beta_dm, metadata_df, var):
     """
-    Safely calculate beta diversity with proper error handling.
-    
-    Parameters:
-    -----------
-    abundance_df : pandas.DataFrame
-        Species abundance DataFrame with species as index, samples as columns
-    metric : str
-        Distance metric to use
-        
-    Returns:
-    --------
-    skbio.DistanceMatrix
-        Beta diversity distance matrix
+    Create NMDS plot which is more robust to non-Euclidean distances.
     """
-    from scipy.spatial.distance import pdist, squareform
-    from skbio.stats.distance import DistanceMatrix
+    from skbio.stats.ordination import nmds
+    import seaborn as sns
     
-    # Replace zeros with a small value to avoid issues
-    abundance_df = abundance_df.replace(0, 1e-10)
+    # Perform NMDS
+    nmds_results = nmds(beta_dm, n_components=2, random_state=42)
     
-    # Transpose to get samples as rows
-    abundance_matrix = abundance_df.T
+    # Get the NMDS points
+    points = nmds_results.samples.values
     
+    # Create a DataFrame for plotting
+    plot_df = pd.DataFrame({
+        'NMDS1': points[:, 0],
+        'NMDS2': points[:, 1],
+        var: metadata_df.loc[beta_dm.ids, var]
+    })
+    
+    # Create plot
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.scatterplot(data=plot_df, x='NMDS1', y='NMDS2', hue=var, s=100, ax=ax)
+    
+    # Add title and stress value
+    stress = nmds_results.stress
+    ax.set_title(f'NMDS of Beta Diversity ({var}) - Stress: {stress:.4f}')
+    
+    return fig
+
+
+def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
+    """
+    Safely create ordination plot with better handling for negative eigenvalues.
+    """
     try:
-        # Calculate distance matrix using scipy
-        distances = pdist(abundance_matrix, metric=metric)
-        distance_square = squareform(distances)
+        from skbio.stats.ordination import pcoa
+        import seaborn as sns
         
-        # Create skbio DistanceMatrix
-        return DistanceMatrix(distance_square, ids=abundance_df.columns)
+        # Perform PCoA with correction for negative eigenvalues
+        pcoa_results = pcoa(beta_dm, method='eigh')  # Use 'eigh' method which better handles negative eigenvalues
+        
+        # Get the first two principal coordinates
+        pc1 = pcoa_results.samples.iloc[:, 0]
+        pc2 = pcoa_results.samples.iloc[:, 1]
+        
+        # Create a DataFrame for plotting
+        plot_df = pd.DataFrame({
+            'PC1': pc1,
+            'PC2': pc2,
+            var: metadata_df.loc[beta_dm.ids, var]
+        })
+        
+        # Calculate variance explained
+        variance_explained = pcoa_results.proportion_explained
+        pc1_var = variance_explained[0] * 100
+        pc2_var = variance_explained[1] * 100
+        
+        # Create plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.scatterplot(data=plot_df, x='PC1', y='PC2', hue=var, s=100, ax=ax)
+        
+        # Add axis labels with variance explained
+        ax.set_xlabel(f'PC1 ({pc1_var:.1f}% variance explained)')
+        ax.set_ylabel(f'PC2 ({pc2_var:.1f}% variance explained)')
+        
+        # Add title and legend
+        ax.set_title(f'{method} of Beta Diversity ({var})')
+        plt.tight_layout()
+        
+        return fig
+        
     except Exception as e:
-        print(f"Error calculating {metric} distance: {str(e)}")
-        print("Falling back to Euclidean distance")
+        print(f"Error creating ordination plot: {str(e)}")
         
-        try:
-            # Try Euclidean distance as fallback
-            distances = pdist(abundance_matrix, metric='euclidean')
-            distance_square = squareform(distances)
-            return DistanceMatrix(distance_square, ids=abundance_df.columns)
-        except Exception as e2:
-            print(f"Error calculating Euclidean distance: {str(e2)}")
-            print("Creating a dummy distance matrix")
-            
-            # Create a dummy distance matrix if all else fails
-            n_samples = len(abundance_df.columns)
-            dummy_matrix = np.zeros((n_samples, n_samples))
-            np.fill_diagonal(dummy_matrix, 0)  # Set diagonal to 0
-            
-            # Fill upper triangle with random values
-            for i in range(n_samples):
-                for j in range(i+1, n_samples):
-                    val = np.random.uniform(0.1, 1.0)
-                    dummy_matrix[i, j] = val
-                    dummy_matrix[j, i] = val  # Make symmetric
-                    
-            return DistanceMatrix(dummy_matrix, ids=abundance_df.columns)
-
+        # Create a simple error message plot with more diagnostics
+        fig, ax = plt.subplots(figsize=(10, 8))
+        ax.text(0.5, 0.5, f"Error creating ordination plot:\n{str(e)}",
+               ha='center', va='center', fontsize=12)
+        ax.set_title(f'{method} of Beta Diversity ({var})')
+        ax.axis('off')
+        
+        # Print more diagnostic information
+        print(f"Distance matrix shape: {beta_dm.shape}")
+        print(f"Number of samples in metadata with group variable {var}: {metadata_df[var].count()}")
+        print(f"Groups in {var}: {metadata_df[var].unique()}")
+        
+        return fig
 
 def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
     """
