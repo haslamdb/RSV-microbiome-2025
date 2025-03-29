@@ -33,6 +33,10 @@ sys.path.append(str(tools_dir))
 # Now import metaphlan_tools functions
 from metaphlan_tools import parse_metaphlan_file, combine_samples, load_metadata
 
+# Import our patched function
+sys.path.append(str(project_root / 'scripts' / 'utils'))
+from parser_patch import patched_combine_samples
+
 def main():
     # Load configuration
     config_path = project_root / 'config' / 'analysis_parameters.yml'
