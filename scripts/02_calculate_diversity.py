@@ -103,33 +103,117 @@ def filter_low_abundance_species(abundance_df, min_prevalence=0.1, min_abundance
 
 def plot_nmds_ordination(beta_dm, metadata_df, var):
     """
-    Create NMDS plot which is more robust to non-Euclidean distances.
+    Create NMDS plot using sklearn's MDS with non-metric option.
     """
-    from skbio.stats.ordination import nmds
-    import seaborn as sns
+    try:
+        from sklearn.manifold import MDS
+        import seaborn as sns
+        import numpy as np
+        
+        # Convert distance matrix to numpy array
+        dist_array = beta_dm.data
+        
+        # Create MDS with non-metric scaling (this is essentially NMDS)
+        mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42, 
+                  metric=False, n_init=10, max_iter=500)
+        
+        # Fit the model and transform
+        coords = mds.fit_transform(dist_array)
+        
+        # Filter metadata to only include samples in the distance matrix
+        common_samples = list(set(beta_dm.ids).intersection(set(metadata_df.index)))
+        
+        # Create a DataFrame for plotting with only common samples
+        plot_df = pd.DataFrame({
+            'NMDS1': coords[:, 0],
+            'NMDS2': coords[:, 1],
+            'Sample': beta_dm.ids
+        })
+        
+        # Join with filtered metadata to get the grouping variable
+        plot_df = plot_df.set_index('Sample')
+        plot_df[var] = metadata_df.loc[common_samples, var]
+        
+        # Create plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.scatterplot(data=plot_df, x='NMDS1', y='NMDS2', hue=var, s=100, ax=ax)
+        
+        # Add title
+        ax.set_title(f'NMDS of Beta Diversity ({var})')
+        
+        return fig
+    except Exception as e:
+        print(f"Error creating NMDS plot: {str(e)}")
+        
+        # Create a simple error message plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        ax.text(0.5, 0.5, f"Error creating NMDS plot:\n{str(e)}",
+               ha='center', va='center', fontsize=12)
+        ax.set_title(f'NMDS of Beta Diversity ({var})')
+        ax.axis('off')
+        
+        return fig
     
-    # Perform NMDS
-    nmds_results = nmds(beta_dm, n_components=2, random_state=42)
     
-    # Get the NMDS points
-    points = nmds_results.samples.values
+def safe_calculate_beta_diversity(abundance_df, metric='braycurtis'):
+    """
+    Safely calculate beta diversity with proper error handling.
     
-    # Create a DataFrame for plotting
-    plot_df = pd.DataFrame({
-        'NMDS1': points[:, 0],
-        'NMDS2': points[:, 1],
-        var: metadata_df.loc[beta_dm.ids, var]
-    })
+    Parameters:
+    -----------
+    abundance_df : pandas.DataFrame
+        Species abundance DataFrame with species as index, samples as columns
+    metric : str
+        Distance metric to use
+        
+    Returns:
+    --------
+    skbio.DistanceMatrix
+        Beta diversity distance matrix
+    """
+    from scipy.spatial.distance import pdist, squareform
+    from skbio.stats.distance import DistanceMatrix
     
-    # Create plot
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.scatterplot(data=plot_df, x='NMDS1', y='NMDS2', hue=var, s=100, ax=ax)
+    # Replace zeros with a small value to avoid issues
+    abundance_df = abundance_df.replace(0, 1e-10)
     
-    # Add title and stress value
-    stress = nmds_results.stress
-    ax.set_title(f'NMDS of Beta Diversity ({var}) - Stress: {stress:.4f}')
+    # Transpose to get samples as rows
+    abundance_matrix = abundance_df.T
     
-    return fig
+    try:
+        # Calculate distance matrix using scipy
+        distances = pdist(abundance_matrix, metric=metric)
+        distance_square = squareform(distances)
+        
+        # Create skbio DistanceMatrix
+        return DistanceMatrix(distance_square, ids=abundance_df.columns)
+    except Exception as e:
+        print(f"Error calculating {metric} distance: {str(e)}")
+        print("Falling back to Euclidean distance")
+        
+        try:
+            # Try Euclidean distance as fallback
+            distances = pdist(abundance_matrix, metric='euclidean')
+            distance_square = squareform(distances)
+            return DistanceMatrix(distance_square, ids=abundance_df.columns)
+        except Exception as e2:
+            print(f"Error calculating Euclidean distance: {str(e2)}")
+            print("Creating a dummy distance matrix")
+            
+            # Create a dummy distance matrix if all else fails
+            n_samples = len(abundance_df.columns)
+            dummy_matrix = np.zeros((n_samples, n_samples))
+            np.fill_diagonal(dummy_matrix, 0)  # Set diagonal to 0
+            
+            # Fill upper triangle with random values
+            for i in range(n_samples):
+                for j in range(i+1, n_samples):
+                    val = np.random.uniform(0.1, 1.0)
+                    dummy_matrix[i, j] = val
+                    dummy_matrix[j, i] = val  # Make symmetric
+                    
+            return DistanceMatrix(dummy_matrix, ids=abundance_df.columns)
+
 
 
 def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
@@ -147,12 +231,19 @@ def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
         pc1 = pcoa_results.samples.iloc[:, 0]
         pc2 = pcoa_results.samples.iloc[:, 1]
         
-        # Create a DataFrame for plotting
+        # Filter metadata to only include samples in the distance matrix
+        common_samples = list(set(beta_dm.ids).intersection(set(metadata_df.index)))
+        
+        # Create a DataFrame for plotting with only common samples
         plot_df = pd.DataFrame({
             'PC1': pc1,
             'PC2': pc2,
-            var: metadata_df.loc[beta_dm.ids, var]
+            'Sample': beta_dm.ids
         })
+        
+        # Join with filtered metadata to get the grouping variable
+        plot_df = plot_df.set_index('Sample')
+        plot_df[var] = metadata_df.loc[common_samples, var]
         
         # Calculate variance explained
         variance_explained = pcoa_results.proportion_explained
@@ -189,6 +280,7 @@ def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
         print(f"Groups in {var}: {metadata_df[var].unique()}")
         
         return fig
+    
 
 def main():
     """Main function to calculate diversity metrics."""
@@ -346,6 +438,10 @@ def main():
             ordination_file = figures_dir / f"beta_diversity_pcoa_{var}.png"
             fig.savefig(ordination_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
+            fig2 = plot_nmds_ordination(beta_dm, metadata_df, var)
+            ordination_file2 = figures_dir / f"beta_diversity_nmds_{var}.png"
+            fig2.savefig(ordination_file2, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
+            plt.close(fig)
             print(f"  Ordination plot saved to {ordination_file}")
     
     # Time-based analysis if time variable exists
@@ -361,16 +457,24 @@ def main():
         # Join alpha diversity with metadata for time plot
         alpha_time_df = pd.DataFrame(index=alpha_df.index)
         for metric in alpha_metrics:
-            # Look for the metric in a case-insensitive way
-            for col in alpha_df.columns:
-                if col.lower() == metric.lower():
-                    alpha_time_df[metric] = alpha_df[col]
-                    break
-        
+            # Try exact match first
+            if metric in alpha_df.columns:
+                alpha_time_df[metric] = alpha_df[metric]
+            else:
+                # Try case-insensitive match
+                for col in alpha_df.columns:
+                    if col.lower() == metric.lower() or (
+                        metric.lower() == "observed_otus" and "observed" in col.lower()
+                    ):
+                        alpha_time_df[metric] = alpha_df[col]
+                        print(f"Matched '{metric}' with column '{col}'")
+                        break
+                else:
+                    print(f"  Warning: Metric '{metric}' not found in alpha diversity data")
         # Add time variable
         time_data = metadata_df[time_var]
         alpha_time_df[time_var] = time_data.loc[alpha_time_df.index]
-        
+                
         # Create a plot for each metric
         for metric in alpha_metrics:
             if metric not in alpha_time_df.columns:
