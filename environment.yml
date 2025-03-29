@@ -19,5 +19,4 @@ dependencies:
   - pyyaml
   - jinja2
   - pip
-  - pip:
-    - metaphlan_tools  # This will be replaced by your local installation
+

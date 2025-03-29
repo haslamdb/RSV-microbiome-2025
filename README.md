@@ -52,9 +52,15 @@ RSV-microbiome-2025/
    conda activate rsv-microbiome
    ```
 
-3. Install the metaphlan_tools package in development mode:
+3. Install the metaphlan_tools package using conda-build:
    ```bash
-   pip install -e tools/metaphlan_tools
+   conda install conda-build
+   conda develop tools/metaphlan_tools
+   ```
+   
+   Alternatively, if you encounter issues, you can use pip with the necessary flag:
+   ```bash
+   pip install -e tools/metaphlan_tools --break-system-packages
    ```
 
 4. Create necessary directories (if they don't exist):
