@@ -21,8 +21,8 @@ cd ~/Analysis/TrimmedMSSFiles/
 
 # Bacterial query and profiling
 
-/usr/local/sylph query  ~/Databases/BacterialDatabases/v0.3-c200-gtdb-r214.syldb Sketches/${f}.sylsp/trimmed_read1_${f}.fastq.gz.paired.sylsp -t 32 > SylphProfiles/${f}_ani_queries.tsv
-/usr/local/sylph profile  ~/Databases/BacterialDatabases/v0.3-c200-gtdb-r214.syldb Sketches/${f}.sylsp/trimmed_read1_${f}.fastq.gz.paired.sylsp -t 32 > SylphProfiles/${f}_profiled_bacteria.tsv
+/usr/local/sylph query  ~/Databases/BacterialDatabases/gtdb-r220-c200-dbv1.syldb  Sketches/${f}.sylsp/trimmed_read1_${f}.fastq.gz.paired.sylsp -t 32 > SylphProfiles/${f}_ani_queries.tsv
+/usr/local/sylph profile  ~/Databases/BacterialDatabases/gtdb-r220-c200-dbv1.syldb Sketches/${f}.sylsp/trimmed_read1_${f}.fastq.gz.paired.sylsp -t 32 > SylphProfiles/${f}_profiled_bacteria.tsv
 
 
 # Viral profiling
