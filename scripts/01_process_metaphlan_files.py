@@ -80,7 +80,10 @@ def main():
         metadata_path = project_root / config['metadata']['filename']
         if metadata_path.exists():
             print("Joining with metadata...")
-            metadata_df = load_metadata(metadata_path, config['metadata']['sample_id_column'])
+            # Convert Path object to string
+            metadata_path_str = str(metadata_path)
+            metadata_df = load_metadata(metadata_path_str, config['metadata']['sample_id_column'])
+            
             
             # Check for sample overlap
             abundance_samples = set(abundance_df.columns)
