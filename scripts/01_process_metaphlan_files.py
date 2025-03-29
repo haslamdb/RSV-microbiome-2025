@@ -154,56 +154,59 @@ def main():
                 print(f"Found {case_insensitive_matches} potential case sensitivity mismatches!")
                 print("Consider standardizing sample IDs to the same case.")
         
-            # Check for minor formatting differences (spaces, dashes, etc.)
-            if only_in_abundance and only_in_metadata:
-                print("\nChecking for formatting differences...")
-                # Create normalized versions (remove special chars)
-                import re
-                
-                def normalize_id(sample_id):
-                    return re.sub(r'[^a-zA-Z0-9]', '', str(sample_id))
-                
-                norm_abundance = {normalize_id(s): s for s in abundance_samples}
-                norm_metadata = {normalize_id(s): s for s in metadata_samples}
-                
-                format_matches = 0
-                for norm_a, orig_a in norm_abundance.items():
-                    if norm_a in norm_metadata and orig_a not in metadata_samples:
-                        format_matches += 1
-                        if format_matches <= 3:  # Show first 3 examples
-                            print(f"  Abundance: '{orig_a}' --> Metadata: '{norm_metadata[norm_a]}'")
-                
-                if format_matches > 0:
-                    print(f"Found {format_matches} potential formatting differences in sample IDs!")
-                    print("Consider standardizing special characters and spacing in sample IDs.")
+        # Check for minor formatting differences (spaces, dashes, etc.)
+        if only_in_abundance and only_in_metadata:
+            print("\nChecking for formatting differences...")
+            # Create normalized versions (remove special chars)
+            import re
             
-            # Provide a suggestion for handling the discrepancy
-            if len(only_in_metadata) > len(only_in_abundance):
-                print("\nSuggestion: There are more samples in metadata than in abundance data.")
-                print("This could be because some samples failed sequencing or processing.")
-                print("Consider checking the raw data directory for missing MetaPhlAn files.")
-            elif len(only_in_abundance) > len(only_in_metadata):
-                print("\nSuggestion: There are more samples in abundance data than in metadata.")
-                print("This could be because some samples were processed but not included in metadata.")
-                print("Consider updating your metadata file to include all processed samples.")
+            def normalize_id(sample_id):
+                return re.sub(r'[^a-zA-Z0-9]', '', str(sample_id))
             
-            # Write mismatch lists to files for further investigation
-            if only_in_abundance:
-                mismatch_file = processed_data_dir / 'samples_only_in_abundance.txt'
-                with open(mismatch_file, 'w') as f:
-                    for sample in sorted(only_in_abundance):
-                        f.write(f"{sample}\n")
-                print(f"\nSamples only in abundance data saved to: {mismatch_file}")
+            norm_abundance = {normalize_id(s): s for s in abundance_samples}
+            norm_metadata = {normalize_id(s): s for s in metadata_samples}
             
-            if only_in_metadata:
-                mismatch_file = processed_data_dir / 'samples_only_in_metadata.txt'
-                with open(mismatch_file, 'w') as f:
-                    for sample in sorted(only_in_metadata):
-                        f.write(f"{sample}\n")
-                print(f"Samples only in metadata saved to: {mismatch_file}")
-        else:
-            print(f"Metadata file not found: {metadata_path}")
-    
+            format_matches = 0
+            for norm_a, orig_a in norm_abundance.items():
+                if norm_a in norm_metadata and orig_a not in metadata_samples:
+                    format_matches += 1
+                    if format_matches <= 3:  # Show first 3 examples
+                        print(f"  Abundance: '{orig_a}' --> Metadata: '{norm_metadata[norm_a]}'")
+            
+            if format_matches > 0:
+                print(f"Found {format_matches} potential formatting differences in sample IDs!")
+                print("Consider standardizing special characters and spacing in sample IDs.")
+        
+        # Write mismatch lists to files for further investigation
+        if only_in_abundance:
+            mismatch_file = processed_data_dir / 'samples_only_in_abundance.txt'
+            with open(mismatch_file, 'w') as f:
+                for sample in sorted(only_in_abundance):
+                    f.write(f"{sample}\n")
+            print(f"\nSamples only in abundance data saved to: {mismatch_file}")
+        
+        if only_in_metadata:
+            # Save as TXT file
+            mismatch_file_txt = processed_data_dir / 'samples_only_in_metadata.txt'
+            with open(mismatch_file_txt, 'w') as f:
+                for sample in sorted(only_in_metadata):
+                    f.write(f"{sample}\n")
+            print(f"Samples only in metadata saved to: {mismatch_file_txt}")
+            
+            # Also save as CSV file with more details
+            mismatch_file_csv = processed_data_dir / 'samples_only_in_metadata.csv'
+            # Get the metadata for these samples
+            metadata_only_df = metadata_df.loc[list(only_in_metadata)]
+            metadata_only_df.to_csv(mismatch_file_csv)
+            print(f"Detailed metadata for missing samples saved to: {mismatch_file_csv}")
+            
+            # Create a subset of metadata file with only matched samples
+            matched_metadata_file = processed_data_dir / 'metadata_matched_samples.csv'
+            metadata_df.loc[list(common_samples)].to_csv(matched_metadata_file)
+            print(f"Metadata for matched samples saved to: {matched_metadata_file}")
+
+    else:
+        print(f"Metadata file not found: {metadata_path}")    
     print("Processing complete!")
 
 if __name__ == "__main__":
