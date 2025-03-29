@@ -67,7 +67,7 @@ def main():
     
     # Combine files into a single abundance table
     print("Combining files into abundance table...")
-    abundance_df = combine_samples(files, sample_ids)
+    abundance_df = patched_combine_samples(files, sample_ids)
     
     # Save the combined table
     output_file = processed_data_dir / 'combined_abundance.csv'
