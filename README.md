@@ -6,12 +6,6 @@ Analysis of nasal microbiome in relation to RSV infection severity and clinical 
 
 This repository contains analysis code and workflows for studying the nasal microbiome in the context of RSV infections. The project utilizes MetaPhlAn-processed microbial profiling data to investigate relationships between nasal microbiome composition and RSV disease severity, symptoms, and clinical outcomes.
 
-## Key Research Questions
-
-1. How does the nasal microbiome composition differ between patients with varying RSV severity?
-2. Are there specific bacterial taxa associated with more severe RSV symptoms?
-3. How does the nasal microbiome change over the course of RSV infection (prior, acute, post)?
-4. Can microbiome features predict clinical outcomes in RSV infections?
 
 ## Directory Structure
 
