@@ -154,7 +154,7 @@ def plot_nmds_ordination(beta_dm, metadata_df, var):
         
         return fig
     
-    
+
 def safe_calculate_beta_diversity(abundance_df, metric='braycurtis'):
     """
     Safely calculate beta diversity with proper error handling.
