@@ -190,76 +190,6 @@ def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
         
         return fig
 
-def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
-    """
-    Safely create ordination plot with error handling.
-    
-    Parameters:
-    -----------
-    beta_dm : skbio.DistanceMatrix
-        Beta diversity distance matrix
-    metadata_df : pandas.DataFrame
-        Metadata DataFrame with samples as index
-    var : str
-        Metadata variable for grouping
-    method : str
-        Ordination method to use
-        
-    Returns:
-    --------
-    matplotlib.figure.Figure
-        Ordination plot
-    """
-    try:
-        from skbio.stats.ordination import pcoa
-        import seaborn as sns
-        
-        # Perform PCoA
-        pcoa_results = pcoa(beta_dm)
-        
-        # Get the first two principal coordinates
-        pc1 = pcoa_results.samples.iloc[:, 0]
-        pc2 = pcoa_results.samples.iloc[:, 1]
-        
-        # Create a DataFrame for plotting
-        plot_df = pd.DataFrame({
-            'PC1': pc1,
-            'PC2': pc2,
-            var: metadata_df.loc[beta_dm.ids, var]
-        })
-        
-        # Calculate variance explained
-        variance_explained = pcoa_results.proportion_explained
-        pc1_var = variance_explained[0] * 100
-        pc2_var = variance_explained[1] * 100
-        
-        # Create plot
-        fig, ax = plt.subplots(figsize=(10, 8))
-        sns.scatterplot(data=plot_df, x='PC1', y='PC2', hue=var, s=100, ax=ax)
-        
-        # Add axis labels with variance explained
-        ax.set_xlabel(f'PC1 ({pc1_var:.1f}% variance explained)')
-        ax.set_ylabel(f'PC2 ({pc2_var:.1f}% variance explained)')
-        
-        # Add title and legend
-        ax.set_title(f'{method} of Beta Diversity ({var})')
-        plt.tight_layout()
-        
-        return fig
-        
-    except Exception as e:
-        print(f"Error creating ordination plot: {str(e)}")
-        
-        # Create a simple error message plot
-        fig, ax = plt.subplots(figsize=(10, 8))
-        ax.text(0.5, 0.5, f"Error creating ordination plot:\n{str(e)}",
-               ha='center', va='center', fontsize=12)
-        ax.set_title(f'{method} of Beta Diversity ({var})')
-        ax.axis('off')
-        
-        return fig
-
-
 def main():
     """Main function to calculate diversity metrics."""
     # Parse arguments
@@ -366,10 +296,14 @@ def main():
         results_df.to_csv(results_file)
         print(f"Statistical results saved to {results_file}")
     
-    # Calculate beta diversity safely
-    print("\nCalculating beta diversity...")
-    beta_metric = config['diversity']['beta_metric']
-    beta_dm = safe_calculate_beta_diversity(abundance_df, metric=beta_metric)
+        # Calculate beta diversity safely
+        print("\nCalculating beta diversity...")
+        beta_metric = config['diversity']['beta_metric']
+
+        # Transform data before beta diversity
+        print("Preprocessing abundance data for beta diversity...")
+        preprocessed_abundance = preprocess_for_beta_diversity(abundance_df)
+        beta_dm = safe_calculate_beta_diversity(preprocessed_abundance, metric=beta_metric)
     
     # Perform PERMANOVA tests with error handling
     permanova_results = {}
