@@ -9,7 +9,7 @@ for f in $files; do
 
 cd ~/Analysis/TrimmedMSSFiles/
 
-sylph sketch -1 trimmed_read1_${f}.fastq.gz -2 trimmed_read2_${f}.fastq.gz -d Sketches/${f}.sylsp
+#sylph sketch -1 trimmed_read1_${f}.fastq.gz -2 trimmed_read2_${f}.fastq.gz -d Sketches/${f}.sylsp
 
 done
 
@@ -18,6 +18,7 @@ for f in $files; do
 
 cd ~/Analysis/TrimmedMSSFiles/
 
+mkdir SylphProfiles
 
 # Bacterial query and profiling
 
