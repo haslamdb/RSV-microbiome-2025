@@ -12,8 +12,8 @@ metadata:
 
 # MetaPhlAn file processing
 metaphlan:
-  file_pattern: "*.txt"
-  sample_id_delimiter: "."  # e.g., SampleID.metaphlan_profile.txt
+  file_pattern: "*.metaphlan.tsv"
+  sample_id_delimiter: "." 
   taxonomic_level: "species"
 
 # Diversity analysis
