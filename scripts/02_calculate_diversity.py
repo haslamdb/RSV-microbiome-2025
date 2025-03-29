@@ -103,25 +103,30 @@ def filter_low_abundance_species(abundance_df, min_prevalence=0.1, min_abundance
 
 def plot_nmds_ordination(beta_dm, metadata_df, var):
     """
-    Create NMDS plot which is more robust to non-Euclidean distances.
+    Create NMDS plot using sklearn's MDS with non-metric option.
     """
-    from skbio.stats.ordination import nmds
-    import seaborn as sns
-    
-    # Perform NMDS
     try:
-        nmds_results = nmds(beta_dm, n_components=2, random_state=42)
+        from sklearn.manifold import MDS
+        import seaborn as sns
+        import numpy as np
         
-        # Get the NMDS points
-        points = nmds_results.samples.values
+        # Convert distance matrix to numpy array
+        dist_array = beta_dm.data
+        
+        # Create MDS with non-metric scaling (this is essentially NMDS)
+        mds = MDS(n_components=2, dissimilarity='precomputed', random_state=42, 
+                  metric=False, n_init=10, max_iter=500)
+        
+        # Fit the model and transform
+        coords = mds.fit_transform(dist_array)
         
         # Filter metadata to only include samples in the distance matrix
         common_samples = list(set(beta_dm.ids).intersection(set(metadata_df.index)))
         
         # Create a DataFrame for plotting with only common samples
         plot_df = pd.DataFrame({
-            'NMDS1': points[:, 0],
-            'NMDS2': points[:, 1],
+            'NMDS1': coords[:, 0],
+            'NMDS2': coords[:, 1],
             'Sample': beta_dm.ids
         })
         
@@ -133,9 +138,8 @@ def plot_nmds_ordination(beta_dm, metadata_df, var):
         fig, ax = plt.subplots(figsize=(10, 8))
         sns.scatterplot(data=plot_df, x='NMDS1', y='NMDS2', hue=var, s=100, ax=ax)
         
-        # Add title and stress value
-        stress = nmds_results.stress
-        ax.set_title(f'NMDS of Beta Diversity ({var}) - Stress: {stress:.4f}')
+        # Add title
+        ax.set_title(f'NMDS of Beta Diversity ({var})')
         
         return fig
     except Exception as e:
@@ -149,7 +153,8 @@ def plot_nmds_ordination(beta_dm, metadata_df, var):
         ax.axis('off')
         
         return fig
-
+    
+    
 def safe_calculate_beta_diversity(abundance_df, metric='braycurtis'):
     """
     Safely calculate beta diversity with proper error handling.
