@@ -1,0 +1,3 @@
+[submodule "tools/metaphlan_tools"]
+	path = tools/metaphlan_tools
+	url = https://github.com/haslamdb/metaphlan_tools.git
