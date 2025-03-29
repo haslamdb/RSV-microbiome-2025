@@ -34,7 +34,7 @@ RSV-microbiome-2025/
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.12 or higher
 - Git (with Git LFS for tracking large files)
 - Conda or Mamba (recommended for environment management)
 
