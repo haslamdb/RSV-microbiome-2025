@@ -45,6 +45,7 @@ from metaphlan_tools import (
     calculate_alpha_diversity,
     compare_alpha_diversity,
     calculate_beta_diversity,
+    plot_ordination,
     perform_permanova,
     plot_alpha_diversity_boxplot
 )
