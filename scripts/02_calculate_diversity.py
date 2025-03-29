@@ -268,40 +268,34 @@ def main():
     for var in group_vars:
         if var in metadata_df.columns:
             print(f"\nAnalyzing differences in alpha diversity by {var}")
-            try:
-                results = compare_alpha_diversity(alpha_df, metadata_df, var)
-                alpha_stats_results[var] = results
-                
-                # Print results
-                for metric, stats in results.items():
-                    if stats['p-value'] is not None:
-                        print(f"  {metric}: {stats['test']} p-value = {stats['p-value']:.4f}")
-                    else:
-                        note = stats.get('note', 'Statistical test could not be performed')
-                        print(f"  {metric}: {stats['test']} - {note}")
-                
-                # Create and save boxplot
-                fig = plot_alpha_diversity_boxplot(alpha_df, metadata_df, var)
-                boxplot_file = figures_dir / f"alpha_diversity_{var}.png"
-                fig.savefig(boxplot_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
-                plt.close(fig)
-                print(f"  Boxplot saved to {boxplot_file}")
-            except Exception as e:
-                print(f"  Error analyzing alpha diversity by {var}: {str(e)}")
+            results = compare_alpha_diversity(alpha_df, metadata_df, var)
+            alpha_stats_results[var] = results
+            
+            # Print results
+            for metric, stats in results.items():
+                if stats['p-value'] is not None:
+                    print(f"  {metric}: {stats['test']} p-value = {stats['p-value']:.4f}")
+                else:
+                    note = stats.get('note', 'Statistical test could not be performed')
+                    print(f"  {metric}: {stats['test']} - {note}")
+            
+            # Create and save boxplot
+            fig = plot_alpha_diversity_boxplot(alpha_df, metadata_df, var)
+            boxplot_file = figures_dir / f"alpha_diversity_{var}.png"
+            fig.savefig(boxplot_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
+            plt.close(fig)
+            print(f"  Boxplot saved to {boxplot_file}")
         else:
             print(f"Warning: Variable '{var}' not found in metadata")
     
     # Save alpha diversity comparison results
     for var, results in alpha_stats_results.items():
-        try:
-            # Convert nested dict to DataFrame
-            results_df = pd.DataFrame({metric: {k: v for k, v in stats.items()} 
-                                    for metric, stats in results.items()}).T
-            results_file = tables_dir / f"alpha_diversity_{var}_stats.csv"
-            results_df.to_csv(results_file)
-            print(f"Statistical results saved to {results_file}")
-        except Exception as e:
-            print(f"Error saving alpha diversity results for {var}: {str(e)}")
+        # Convert nested dict to DataFrame
+        results_df = pd.DataFrame({metric: {k: v for k, v in stats.items()} 
+                                for metric, stats in results.items()}).T
+        results_file = tables_dir / f"alpha_diversity_{var}_stats.csv"
+        results_df.to_csv(results_file)
+        print(f"Statistical results saved to {results_file}")
     
     # Calculate beta diversity safely
     print("\nCalculating beta diversity...")
@@ -435,94 +429,9 @@ def main():
                 fig.savefig(time_plot_file, dpi=300)
             
             plt.close(fig)
-
-        # Import seaborn here
-        import seaborn as sns
-        sns.set(style="whitegrid")
-        
-        # Join alpha diversity with metadata for time plot - avoid duplicate index issues
-        alpha_time_df = alpha_df.reset_index().rename(columns={'index': 'SampleID'})
-        metadata_time_df = metadata_df.reset_index().rename(columns={'index': 'SampleID'})
-        
-        try:
-            # Merge on SampleID
-            plot_df = pd.merge(alpha_time_df, metadata_time_df[[time_var, 'SampleID']], on='SampleID')
-            
-            # Create a plot for each metric
-            for metric in alpha_metrics:
-                # Look for the metric in a case-insensitive way
-                actual_metric = None
-                for col in alpha_df.columns:
-                    if col.lower() == metric.lower():
-                        actual_metric = col
-                        break
-                
-                if actual_metric is None:
-                    print(f"  Warning: Metric '{metric}' not found in alpha diversity data")
-                    continue
-                    
-                # Create figure
-                fig, ax = plt.subplots(figsize=(10, 6))
-                
-                # Count samples in each time point
-                time_counts = plot_df[time_var].value_counts()
-                
-                # Only include time points with enough samples
-                valid_times = time_counts[time_counts >= 2].index
-                
-                if len(valid_times) >= 2:
-                    # Filter to valid time points
-                    time_plot_data = plot_df[plot_df[time_var].isin(valid_times)]
-                    
-                    try:
-                        # Create boxplot
-                        sns.boxplot(x=time_var, y=actual_metric, data=time_plot_data, ax=ax)
-                        ax.set_title(f'{actual_metric} Diversity Over {time_var}')
-                        ax.set_xlabel(time_var)
-                        ax.set_ylabel(f'{actual_metric} Diversity')
-                        
-                        # Rotate x-axis labels if needed
-                        plt.xticks(rotation=45)
-                        plt.tight_layout()
-                        
-                        # Save the figure
-                        time_plot_file = figures_dir / f'alpha_{actual_metric}_{time_var}.png'
-                        fig.savefig(time_plot_file, dpi=300)
-                        print(f"  Time series plot for {actual_metric} saved to {time_plot_file}")
-                        
-                    except Exception as e:
-                        # Handle plotting error
-                        print(f"  Error creating time series plot for {actual_metric}: {str(e)}")
-                        ax.text(0.5, 0.5, f"Error creating plot: {str(e)}",
-                               horizontalalignment='center', verticalalignment='center',
-                               transform=ax.transAxes, fontsize=12, color='red')
-                        ax.set_title(f'{actual_metric} Diversity Over {time_var}')
-                        ax.axis('off')
-                        
-                        # Save the error message figure
-                        time_plot_file = figures_dir / f'alpha_{actual_metric}_{time_var}_error.png'
-                        fig.savefig(time_plot_file, dpi=300)
-                else:
-                    # Not enough valid time points
-                    print(f"  Insufficient data for time series plot for {metric} (need at least 2 time points with 2+ samples)")
-                    ax.text(0.5, 0.5, "Insufficient data points\nfor time series analysis",
-                           horizontalalignment='center', verticalalignment='center',
-                           transform=ax.transAxes, fontsize=12)
-                    ax.set_title(f'{metric} Diversity Over {time_var}')
-                    ax.axis('off')
-                    
-                    # Save the message figure
-                    time_plot_file = figures_dir / f'alpha_{metric}_{time_var}_insufficient.png'
-                    fig.savefig(time_plot_file, dpi=300)
-                
-                plt.close(fig)
-        except Exception as e:
-            print(f"  Error during time series analysis: {str(e)}")
-
         
     print("\nDiversity analysis complete!")
 
 
 if __name__ == "__main__":
-
     main()

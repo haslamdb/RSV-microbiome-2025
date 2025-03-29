@@ -1,4 +1,4 @@
-,test,statistic,p-value,note
-Shannon,None,,,"All values are identical, no statistical test performed"
-Simpson,None,,,"All values are identical, no statistical test performed"
-Observed,Kruskal-Wallis,1.346541710060787,0.5100375874840681,
+,test,statistic,p-value
+Shannon,Kruskal-Wallis,4.759510275470056,0.09257324242915538
+Simpson,Kruskal-Wallis,5.415393573257939,0.06669023179543285
+Observed,Kruskal-Wallis,1.8258912246325012,0.40134028828564156
