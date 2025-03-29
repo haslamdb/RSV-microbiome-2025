@@ -33,10 +33,12 @@ sys.path.append(str(tools_dir))
 # Now import metaphlan_tools functions
 from metaphlan_tools import parse_metaphlan_file, combine_samples, load_metadata
 
-# Import our patched function
-sys.path.append(str(project_root / 'scripts' / 'utils'))
-from parser_patch import patched_combine_samples
 
+# Import functions from metaphlan_tools
+from metaphlan_tools import (
+    load_metadata,
+    combine_samples
+)
 
 
 def main():
@@ -69,7 +71,7 @@ def main():
     
     # Combine files into a single abundance table
     print("Combining files into abundance table...")
-    abundance_df = patched_combine_samples(files, sample_ids)
+    abundance_df = combine_samples(files, sample_ids)
     
     # Save the combined table
     output_file = processed_data_dir / 'combined_abundance.csv'
