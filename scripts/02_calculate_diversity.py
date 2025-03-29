@@ -134,7 +134,11 @@ def main():
             
             # Print results
             for metric, stats in results.items():
-                print(f"  {metric}: {stats['test']} p-value = {stats['p-value']:.4f}")
+                if stats['p-value'] is not None:
+                    print(f"  {metric}: {stats['test']} p-value = {stats['p-value']:.4f}")
+                else:
+                    note = stats.get('note', 'Statistical test could not be performed')
+                    print(f"  {metric}: {stats['test']} - {note}")
             
             # Create and save boxplot
             fig = plot_alpha_diversity_boxplot(alpha_df, metadata_df, var)
