@@ -57,6 +57,18 @@ RSV-microbiome-2025/
    pip install -e tools/metaphlan_tools
    ```
 
+4. Create necessary directories (if they don't exist):
+   ```bash
+   mkdir -p data/raw data/processed results/figures results/tables config
+   ```
+
+5. Copy the analysis configuration file:
+   ```bash
+   # If not already present
+   cp config/analysis_parameters.yml.example config/analysis_parameters.yml
+   # Edit the parameters as needed
+   ```
+
 ### Analysis Workflow
 
 The analysis follows these main steps:
