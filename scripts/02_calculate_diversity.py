@@ -8,7 +8,7 @@ This script:
 3. Compares alpha diversity between clinical groups
 4. Calculates beta diversity distance matrix
 5. Performs PERMANOVA to test for community composition differences
-6. Generates visualizations of diversity metrics
+6. Generates visualizations of diversity metricstime_variable: "Timing"
 
 Usage:
     python scripts/02_calculate_diversity.py [--config CONFIG_FILE]
@@ -366,7 +366,7 @@ def main():
             
             # Create and save boxplot
             fig = plot_alpha_diversity_boxplot(alpha_df, metadata_df, var)
-            boxplot_file = figures_dir / f"alpha_diversity_{var}.png"
+            boxplot_file = figures_dir / f"alpha_diversity_{var}.pdf"
             fig.savefig(boxplot_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
             print(f"  Boxplot saved to {boxplot_file}")
@@ -429,11 +429,11 @@ def main():
         if var in metadata_df.columns:
             print(f"  Creating ordination plot for {var}")
             fig = plot_ordination(beta_dm, metadata_df, var, method='PCoA')
-            ordination_file = figures_dir / f"beta_diversity_pcoa_{var}.png"
+            ordination_file = figures_dir / f"beta_diversity_pcoa_{var}.pdf"
             fig.savefig(ordination_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
             fig2 = plot_nmds_ordination(beta_dm, metadata_df, var)
-            ordination_file2 = figures_dir / f"beta_diversity_nmds_{var}.png"
+            ordination_file2 = figures_dir / f"beta_diversity_nmds_{var}.pdf"
             fig2.savefig(ordination_file2, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
             print(f"  Ordination plot saved to {ordination_file}")
@@ -500,7 +500,7 @@ def main():
                     plt.tight_layout()
                     
                     # Save the figure
-                    time_plot_file = figures_dir / f'alpha_{metric}_{time_var}.png'
+                    time_plot_file = figures_dir / f'alpha_{metric}_{time_var}.pdf'
                     fig.savefig(time_plot_file, dpi=300)
                     print(f"  Time series plot for {metric} saved to {time_plot_file}")
                     
@@ -514,7 +514,7 @@ def main():
                     ax.axis('off')
                     
                     # Save the error message figure
-                    time_plot_file = figures_dir / f'alpha_{metric}_{time_var}_error.png'
+                    time_plot_file = figures_dir / f'alpha_{metric}_{time_var}_error.pdf'
                     fig.savefig(time_plot_file, dpi=300)
             else:
                 # Not enough valid time points
@@ -526,7 +526,7 @@ def main():
                 ax.axis('off')
                 
                 # Save the message figure
-                time_plot_file = figures_dir / f'alpha_{metric}_{time_var}_insufficient.png'
+                time_plot_file = figures_dir / f'alpha_{metric}_{time_var}_insufficient.pdf'
                 fig.savefig(time_plot_file, dpi=300)
             
             plt.close(fig)
