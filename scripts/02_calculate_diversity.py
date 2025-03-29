@@ -109,28 +109,46 @@ def plot_nmds_ordination(beta_dm, metadata_df, var):
     import seaborn as sns
     
     # Perform NMDS
-    nmds_results = nmds(beta_dm, n_components=2, random_state=42)
-    
-    # Get the NMDS points
-    points = nmds_results.samples.values
-    
-    # Create a DataFrame for plotting
-    plot_df = pd.DataFrame({
-        'NMDS1': points[:, 0],
-        'NMDS2': points[:, 1],
-        var: metadata_df.loc[beta_dm.ids, var]
-    })
-    
-    # Create plot
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.scatterplot(data=plot_df, x='NMDS1', y='NMDS2', hue=var, s=100, ax=ax)
-    
-    # Add title and stress value
-    stress = nmds_results.stress
-    ax.set_title(f'NMDS of Beta Diversity ({var}) - Stress: {stress:.4f}')
-    
-    return fig
-
+    try:
+        nmds_results = nmds(beta_dm, n_components=2, random_state=42)
+        
+        # Get the NMDS points
+        points = nmds_results.samples.values
+        
+        # Filter metadata to only include samples in the distance matrix
+        common_samples = list(set(beta_dm.ids).intersection(set(metadata_df.index)))
+        
+        # Create a DataFrame for plotting with only common samples
+        plot_df = pd.DataFrame({
+            'NMDS1': points[:, 0],
+            'NMDS2': points[:, 1],
+            'Sample': beta_dm.ids
+        })
+        
+        # Join with filtered metadata to get the grouping variable
+        plot_df = plot_df.set_index('Sample')
+        plot_df[var] = metadata_df.loc[common_samples, var]
+        
+        # Create plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.scatterplot(data=plot_df, x='NMDS1', y='NMDS2', hue=var, s=100, ax=ax)
+        
+        # Add title and stress value
+        stress = nmds_results.stress
+        ax.set_title(f'NMDS of Beta Diversity ({var}) - Stress: {stress:.4f}')
+        
+        return fig
+    except Exception as e:
+        print(f"Error creating NMDS plot: {str(e)}")
+        
+        # Create a simple error message plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        ax.text(0.5, 0.5, f"Error creating NMDS plot:\n{str(e)}",
+               ha='center', va='center', fontsize=12)
+        ax.set_title(f'NMDS of Beta Diversity ({var})')
+        ax.axis('off')
+        
+        return fig
 
 def safe_calculate_beta_diversity(abundance_df, metric='braycurtis'):
     """
@@ -209,15 +227,18 @@ def safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA'):
         pc2 = pcoa_results.samples.iloc[:, 1]
         
         # Filter metadata to only include samples in the distance matrix
-        common_samples = set(beta_dm.ids).intersection(set(metadata_df.index))
-        filtered_metadata = metadata_df.loc[list(common_samples)]
+        common_samples = list(set(beta_dm.ids).intersection(set(metadata_df.index)))
         
-        # Create a DataFrame for plotting
+        # Create a DataFrame for plotting with only common samples
         plot_df = pd.DataFrame({
             'PC1': pc1,
             'PC2': pc2,
-            var: filtered_metadata.loc[beta_dm.ids, var]
+            'Sample': beta_dm.ids
         })
+        
+        # Join with filtered metadata to get the grouping variable
+        plot_df = plot_df.set_index('Sample')
+        plot_df[var] = metadata_df.loc[common_samples, var]
         
         # Calculate variance explained
         variance_explained = pcoa_results.proportion_explained
@@ -412,6 +433,10 @@ def main():
             ordination_file = figures_dir / f"beta_diversity_pcoa_{var}.png"
             fig.savefig(ordination_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
+            fig2 = plot_nmds_ordination(beta_dm, metadata_df, var)
+            ordination_file2 = figures_dir / f"beta_diversity_nmds_{var}.png"
+            fig2.savefig(ordination_file2, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
+            plt.close(fig)
             print(f"  Ordination plot saved to {ordination_file}")
     
     # Time-based analysis if time variable exists
@@ -441,9 +466,9 @@ def main():
                         break
                 else:
                     print(f"  Warning: Metric '{metric}' not found in alpha diversity data")
-                # Add time variable
-                time_data = metadata_df[time_var]
-                alpha_time_df[time_var] = time_data.loc[alpha_time_df.index]
+        # Add time variable
+        time_data = metadata_df[time_var]
+        alpha_time_df[time_var] = time_data.loc[alpha_time_df.index]
                 
         # Create a plot for each metric
         for metric in alpha_metrics:
