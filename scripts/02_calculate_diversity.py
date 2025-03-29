@@ -61,40 +61,6 @@ def parse_args():
     return parser.parse_args()
 
 
-def clean_abundance_data(abundance_df):
-    """
-    Clean and prepare abundance data for analysis.
-    
-    Parameters:
-    -----------
-    abundance_df : pandas.DataFrame
-        Species abundance DataFrame with species as index, samples as columns
-        
-    Returns:
-    --------
-    pandas.DataFrame
-        Cleaned abundance DataFrame
-    """
-    # Make a copy to avoid modifying the original
-    df = abundance_df.copy()
-    
-    # Check for non-numeric values
-    for col in df.columns:
-        # Try to convert to numeric, coerce errors to NaN
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-    
-    # Fill NaN values with 0
-    df = df.fillna(0)
-    
-    # Replace negative values with 0
-    df[df < 0] = 0
-    
-    # Replace zeros with small value to avoid division by zero
-    df = df.replace(0, 1e-10)
-    
-    return df
-
-
 def safe_calculate_beta_diversity(abundance_df, metric='braycurtis'):
     """
     Safely calculate beta diversity with proper error handling.
@@ -113,6 +79,9 @@ def safe_calculate_beta_diversity(abundance_df, metric='braycurtis'):
     """
     from scipy.spatial.distance import pdist, squareform
     from skbio.stats.distance import DistanceMatrix
+    
+    # Replace zeros with a small value to avoid issues
+    abundance_df = abundance_df.replace(0, 1e-10)
     
     # Transpose to get samples as rows
     abundance_matrix = abundance_df.T
@@ -255,14 +224,10 @@ def main():
     print(f"Loading abundance data from {abundance_file}")
     abundance_df = pd.read_csv(abundance_file, index_col=0)
     
-<<<<<<< HEAD
-    # Handle potential zero values - replace with small value to avoid distance calculation issues
-    abundance_df = abundance_df.replace(0, 1e-8)
-=======
-    # Clean the abundance data
-    print("Cleaning abundance data...")
-    abundance_df = clean_abundance_data(abundance_df)
->>>>>>> bd9a68e4b699556b6ec20e7f321e94fae04a9e12
+    # Check for and handle invalid values
+    if (abundance_df < 0).any().any():
+        print("Warning: Negative values found in abundance data, replacing with zeros")
+        abundance_df[abundance_df < 0] = 0
     
     # Load metadata
     metadata_file = project_root / config['metadata']['filename']
@@ -338,40 +303,10 @@ def main():
         except Exception as e:
             print(f"Error saving alpha diversity results for {var}: {str(e)}")
     
-<<<<<<< HEAD
-    # Calculate beta diversity with error handling
-    print("\nCalculating beta diversity...")
-    beta_metric = config['diversity']['beta_metric']
-    try:
-        beta_dm = calculate_beta_diversity(abundance_df, metric=beta_metric)
-        
-        # Check for NaN values in distance matrix
-        if np.isnan(beta_dm).any():
-            print("Warning: NaN values found in distance matrix, replacing with zeros")
-            # Replace NaN values with zeros
-            beta_dm[np.isnan(beta_dm)] = 0
-    except Exception as e:
-        print(f"Error calculating beta diversity: {str(e)}")
-        print("Using Euclidean distance as fallback")
-        # Fallback to Euclidean distance which is more robust
-        from skbio.stats.distance import DistanceMatrix
-        from scipy.spatial.distance import pdist, squareform
-        
-        # Transpose abundance matrix to get samples as rows
-        abundance_matrix = abundance_df.T.values
-        
-        # Calculate Euclidean distance
-        distances = pdist(abundance_matrix, metric='euclidean')
-        distance_matrix = squareform(distances)
-        
-        # Create DistanceMatrix object
-        beta_dm = DistanceMatrix(distance_matrix, ids=abundance_df.columns)
-=======
     # Calculate beta diversity safely
     print("\nCalculating beta diversity...")
     beta_metric = config['diversity']['beta_metric']
     beta_dm = safe_calculate_beta_diversity(abundance_df, metric=beta_metric)
->>>>>>> bd9a68e4b699556b6ec20e7f321e94fae04a9e12
     
     # Perform PERMANOVA tests with error handling
     permanova_results = {}
@@ -405,37 +340,16 @@ def main():
     permanova_df.to_csv(permanova_file)
     print(f"\nPERMANOVA results saved to {permanova_file}")
     
-    # Create ordination plots with error handling
+    # Create ordination plots
     print("\nCreating ordination plots...")
     for var in group_vars:
         if var in metadata_df.columns:
             print(f"  Creating ordination plot for {var}")
-<<<<<<< HEAD
-            try:
-                fig = plot_beta_diversity_ordination(beta_dm, metadata_df, var, method='PCoA')
-                ordination_file = figures_dir / f"beta_diversity_pcoa_{var}.png"
-                fig.savefig(ordination_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
-                plt.close(fig)
-                print(f"  Ordination plot saved to {ordination_file}")
-            except Exception as e:
-                print(f"  Error creating ordination plot for {var}: {str(e)}")
-                # Create a simple error plot instead
-                fig, ax = plt.subplots(figsize=(10, 8))
-                ax.text(0.5, 0.5, f"Error creating ordination plot:\n{str(e)}",
-                       ha='center', va='center')
-                ax.set_title(f"PCoA of {beta_metric} distances by {var}")
-                ax.axis('off')
-                ordination_file = figures_dir / f"beta_diversity_pcoa_{var}_error.png"
-                fig.savefig(ordination_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
-                plt.close(fig)
-                print(f"  Error message saved to {ordination_file}")
-=======
             fig = safe_plot_ordination(beta_dm, metadata_df, var, method='PCoA')
             ordination_file = figures_dir / f"beta_diversity_pcoa_{var}.png"
             fig.savefig(ordination_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
             print(f"  Ordination plot saved to {ordination_file}")
->>>>>>> bd9a68e4b699556b6ec20e7f321e94fae04a9e12
     
     # Time-based analysis if time variable exists
     time_var = config['metadata']['time_variable']
@@ -443,34 +357,31 @@ def main():
         # Create alpha diversity time series plots
         print(f"\nAnalyzing diversity changes over {time_var}")
         
-<<<<<<< HEAD
-        # Join alpha diversity with metadata for time plot
-        alpha_time_df = alpha_df.copy()
-        # Verify all samples in alpha_df are in metadata_df before joining
-        common_samples = set(alpha_df.index).intersection(set(metadata_df.index))
-        alpha_time_df = alpha_time_df.loc[list(common_samples)]
-        
-        # Now join with metadata
-        alpha_time_df = alpha_time_df.join(metadata_df.loc[alpha_time_df.index, [time_var]])
-        
         # Import seaborn here
         import seaborn as sns
         sns.set(style="whitegrid")
         
-        # Create a plot for each metric in alpha_metrics
+        # Join alpha diversity with metadata for time plot
+        alpha_time_df = pd.DataFrame(index=alpha_df.index)
         for metric in alpha_metrics:
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            # Check if the metric exists in the dataframe
-            actual_metric = None
-            for col in alpha_time_df.columns:
+            # Look for the metric in a case-insensitive way
+            for col in alpha_df.columns:
                 if col.lower() == metric.lower():
-                    actual_metric = col
+                    alpha_time_df[metric] = alpha_df[col]
                     break
-            
-            if actual_metric is None:
-                print(f"Error: Metric '{metric}' not found in dataframe. Available metrics: {', '.join(alpha_time_df.columns)}")
+        
+        # Add time variable
+        time_data = metadata_df[time_var]
+        alpha_time_df[time_var] = time_data.loc[alpha_time_df.index]
+        
+        # Create a plot for each metric
+        for metric in alpha_metrics:
+            if metric not in alpha_time_df.columns:
+                print(f"  Warning: Metric '{metric}' not found in alpha diversity data")
                 continue
+                
+            # Create figure
+            fig, ax = plt.subplots(figsize=(10, 6))
             
             # Count samples in each time point
             time_counts = alpha_time_df[time_var].value_counts()
@@ -483,31 +394,33 @@ def main():
                 plot_data = alpha_time_df[alpha_time_df[time_var].isin(valid_times)]
                 
                 try:
-                    # Create boxplot with the correct metric name
-                    sns_plot = sns.boxplot(x=time_var, y=actual_metric, data=plot_data, ax=ax)
-                    ax.set_title(f'{actual_metric} Diversity Over {time_var}')
+                    # Create boxplot
+                    sns.boxplot(x=time_var, y=metric, data=plot_data, ax=ax)
+                    ax.set_title(f'{metric} Diversity Over {time_var}')
                     ax.set_xlabel(time_var)
-                    ax.set_ylabel(f'{actual_metric} Diversity')
+                    ax.set_ylabel(f'{metric} Diversity')
                     
                     # Rotate x-axis labels if needed
                     plt.xticks(rotation=45)
                     plt.tight_layout()
                     
                     # Save the figure
-                    fig.savefig(os.path.join(output_dir, f'alpha_{actual_metric}_{time_var}.png'), dpi=300)
-                    print(f"  Time series plot for {actual_metric} saved")
+                    time_plot_file = figures_dir / f'alpha_{metric}_{time_var}.png'
+                    fig.savefig(time_plot_file, dpi=300)
+                    print(f"  Time series plot for {metric} saved to {time_plot_file}")
                     
                 except Exception as e:
                     # Handle plotting error
-                    print(f"  Error creating time series plot for {actual_metric}: {str(e)}")
+                    print(f"  Error creating time series plot for {metric}: {str(e)}")
                     ax.text(0.5, 0.5, f"Error creating plot: {str(e)}",
                            horizontalalignment='center', verticalalignment='center',
                            transform=ax.transAxes, fontsize=12, color='red')
-                    ax.set_title(f'{actual_metric} Diversity Over {time_var}')
+                    ax.set_title(f'{metric} Diversity Over {time_var}')
                     ax.axis('off')
                     
                     # Save the error message figure
-                    fig.savefig(os.path.join(output_dir, f'alpha_{actual_metric}_{time_var}_error.png'), dpi=300)
+                    time_plot_file = figures_dir / f'alpha_{metric}_{time_var}_error.png'
+                    fig.savefig(time_plot_file, dpi=300)
             else:
                 # Not enough valid time points
                 print(f"  Insufficient data for time series plot for {metric} (need at least 2 time points with 2+ samples)")
@@ -518,10 +431,11 @@ def main():
                 ax.axis('off')
                 
                 # Save the message figure
-                fig.savefig(os.path.join(output_dir, f'alpha_{metric}_{time_var}_insufficient.png'), dpi=300)
+                time_plot_file = figures_dir / f'alpha_{metric}_{time_var}_insufficient.png'
+                fig.savefig(time_plot_file, dpi=300)
             
             plt.close(fig)
-=======
+
         # Import seaborn here
         import seaborn as sns
         sns.set(style="whitegrid")
@@ -604,14 +518,11 @@ def main():
                 plt.close(fig)
         except Exception as e:
             print(f"  Error during time series analysis: {str(e)}")
->>>>>>> bd9a68e4b699556b6ec20e7f321e94fae04a9e12
+
         
     print("\nDiversity analysis complete!")
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
+
     main()
-=======
-    main()
->>>>>>> bd9a68e4b699556b6ec20e7f321e94fae04a9e12
