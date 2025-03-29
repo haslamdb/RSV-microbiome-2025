@@ -1,0 +1,6 @@
+#mpa_vOct22_CHOCOPhlAnSGB_202212
+#/usr/local/miniconda3/bin/metaphlan /home/david/Analysis/TrimmedMSSFiles/3001045026-DNA.paired.fastq -t rel_ab -o /home/david/Documents/Alignments/Humann3Alignments/3001045026-DNA/3001045026-DNA.paired_humann_temp/3001045026-DNA.paired_metaphlan_bugs_list.tsv --input_type fastq --bowtie2out /home/david/Documents/Alignments/Humann3Alignments/3001045026-DNA/3001045026-DNA.paired_humann_temp/3001045026-DNA.paired_metaphlan_bowtie2.txt --nproc 12
+#53331 reads processed
+#SampleID	Metaphlan_Analysis
+#clade_name	NCBI_tax_id	relative_abundance	additional_species
+UNCLASSIFIED	-1	100.0	

@@ -1,0 +1,27 @@
+#mpa_vOct22_CHOCOPhlAnSGB_202212
+#/usr/local/miniconda3/bin/metaphlan /home/david/Analysis/TrimmedMSSFiles/3000847949-DNA.paired.fastq -t rel_ab -o /home/david/Documents/Alignments/Humann3Alignments/3000847949-DNA/3000847949-DNA.paired_humann_temp/3000847949-DNA.paired_metaphlan_bugs_list.tsv --input_type fastq --bowtie2out /home/david/Documents/Alignments/Humann3Alignments/3000847949-DNA/3000847949-DNA.paired_humann_temp/3000847949-DNA.paired_metaphlan_bowtie2.txt --nproc 12
+#141878 reads processed
+#SampleID	Metaphlan_Analysis
+#clade_name	NCBI_tax_id	relative_abundance	additional_species
+k__Bacteria	2	100.0	
+k__Bacteria|p__Proteobacteria	2|1224	71.44696	
+k__Bacteria|p__Firmicutes	2|1239	28.55304	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria	2|1224|1236	71.44696	
+k__Bacteria|p__Firmicutes|c__Bacilli	2|1239|91061	28.55304	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales	2|1224|1236|2887326	70.48317	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales	2|1239|91061|186826	28.55304	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales	2|1224|1236|135625	0.96378	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae	2|1224|1236|2887326|468	70.48317	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae	2|1239|91061|186826|186828	28.55304	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae	2|1224|1236|135625|712	0.96378	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella	2|1224|1236|2887326|468|475	70.48317	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum	2|1239|91061|186826|186828|29393	28.55304	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus	2|1224|1236|135625|712|724	0.96378	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella|s__Moraxella_nonliquefaciens	2|1224|1236|2887326|468|475|478	69.50952	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum	2|1239|91061|186826|186828|29393|29394	28.55304	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella|s__Moraxella_catarrhalis	2|1224|1236|2887326|468|475|480	0.97365	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_influenzae	2|1224|1236|135625|712|724|727	0.96378	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella|s__Moraxella_nonliquefaciens|t__SGB10426	2|1224|1236|2887326|468|475|478|	69.50952	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum|t__SGB7017	2|1239|91061|186826|186828|29393|29394|	28.55304	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella|s__Moraxella_catarrhalis|t__SGB10429	2|1224|1236|2887326|468|475|480|	0.97365	k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella|s__Moraxella_sp_HMSC061H09
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_influenzae|t__SGB9648	2|1224|1236|135625|712|724|727|	0.96378	k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_aegyptius,k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_sp_HMSC066A11

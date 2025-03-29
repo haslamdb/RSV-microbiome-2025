@@ -1,0 +1,20 @@
+#mpa_vOct22_CHOCOPhlAnSGB_202212
+#/usr/local/miniconda3/bin/metaphlan /home/david/Analysis/TrimmedMSSFiles/3000858874-DNA.paired.fastq -t rel_ab -o /home/david/Documents/Alignments/Humann3Alignments/3000858874-DNA/3000858874-DNA.paired_humann_temp/3000858874-DNA.paired_metaphlan_bugs_list.tsv --input_type fastq --bowtie2out /home/david/Documents/Alignments/Humann3Alignments/3000858874-DNA/3000858874-DNA.paired_humann_temp/3000858874-DNA.paired_metaphlan_bowtie2.txt --nproc 12
+#85375 reads processed
+#SampleID	Metaphlan_Analysis
+#clade_name	NCBI_tax_id	relative_abundance	additional_species
+k__Bacteria	2	100.0	
+k__Bacteria|p__Firmicutes	2|1239	60.53802	
+k__Bacteria|p__Proteobacteria	2|1224	39.46198	
+k__Bacteria|p__Firmicutes|c__Bacilli	2|1239|91061	60.53802	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria	2|1224|1236	39.46198	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales	2|1239|91061|186826	60.53802	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales	2|1224|1236|2887326	39.46198	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae	2|1239|91061|186826|186828	60.53802	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae	2|1224|1236|2887326|468	39.46198	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum	2|1239|91061|186826|186828|29393	60.53802	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella	2|1224|1236|2887326|468|475	39.46198	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum	2|1239|91061|186826|186828|29393|29394	60.53802	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella|s__Moraxella_nonliquefaciens	2|1224|1236|2887326|468|475|478	39.46198	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum|t__SGB7017	2|1239|91061|186826|186828|29393|29394|	60.53802	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Moraxellales|f__Moraxellaceae|g__Moraxella|s__Moraxella_nonliquefaciens|t__SGB10426	2|1224|1236|2887326|468|475|478|	39.46198	

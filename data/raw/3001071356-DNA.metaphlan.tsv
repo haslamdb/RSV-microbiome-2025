@@ -1,0 +1,28 @@
+#mpa_vOct22_CHOCOPhlAnSGB_202212
+#/usr/local/miniconda3/bin/metaphlan /home/david/Analysis/TrimmedMSSFiles/3001071356-DNA.paired.fastq -t rel_ab -o /home/david/Documents/Alignments/Humann3Alignments/3001071356-DNA/3001071356-DNA.paired_humann_temp/3001071356-DNA.paired_metaphlan_bugs_list.tsv --input_type fastq --bowtie2out /home/david/Documents/Alignments/Humann3Alignments/3001071356-DNA/3001071356-DNA.paired_humann_temp/3001071356-DNA.paired_metaphlan_bowtie2.txt --nproc 12
+#107958 reads processed
+#SampleID	Metaphlan_Analysis
+#clade_name	NCBI_tax_id	relative_abundance	additional_species
+k__Bacteria	2	100.0	
+k__Bacteria|p__Firmicutes	2|1239	50.81775	
+k__Bacteria|p__Actinobacteria	2|201174	48.49562	
+k__Bacteria|p__Proteobacteria	2|1224	0.68662	
+k__Bacteria|p__Firmicutes|c__Bacilli	2|1239|91061	50.81775	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia	2|201174|1760	48.49562	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria	2|1224|1236	0.68662	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales	2|1239|91061|186826	50.81775	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales	2|1224|1236|135625	0.68662	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae	2|1239|91061|186826|186828	50.81775	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae	2|201174|1760|85007|1653	48.49562	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae	2|1224|1236|135625|712	0.68662	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum	2|1239|91061|186826|186828|29393	50.81775	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium	2|201174|1760|85007|1653|1716	48.49562	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus	2|1224|1236|135625|712|724	0.68662	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum	2|1239|91061|186826|186828|29393|29394	50.81775	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_propinquum	2|201174|1760|85007|1653|1716|43769	43.39176	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_accolens	2|201174|1760|85007|1653|1716|38284	5.10386	
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_influenzae	2|1224|1236|135625|712|724|727	0.68662	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum|t__SGB7017	2|1239|91061|186826|186828|29393|29394|	50.81775	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_propinquum|t__SGB17012	2|201174|1760|85007|1653|1716|43769|	43.39176	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_accolens|t__SGB17097	2|201174|1760|85007|1653|1716|38284|	5.10386	k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_segmentosum,k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_sp_KPL1818,k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_sp_KPL1824,k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_sp_KPL1998
+k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_influenzae|t__SGB9648	2|1224|1236|135625|712|724|727|	0.68662	k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_aegyptius,k__Bacteria|p__Proteobacteria|c__Gammaproteobacteria|o__Pasteurellales|f__Pasteurellaceae|g__Haemophilus|s__Haemophilus_sp_HMSC066A11

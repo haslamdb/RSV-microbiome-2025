@@ -1,0 +1,41 @@
+#mpa_vOct22_CHOCOPhlAnSGB_202212
+#/usr/local/miniconda3/bin/metaphlan /home/david/Analysis/TrimmedMSSFiles/3000886263-DNA.paired.fastq -t rel_ab -o /home/david/Documents/Alignments/Humann3Alignments/3000886263-DNA/3000886263-DNA.paired_humann_temp/3000886263-DNA.paired_metaphlan_bugs_list.tsv --input_type fastq --bowtie2out /home/david/Documents/Alignments/Humann3Alignments/3000886263-DNA/3000886263-DNA.paired_humann_temp/3000886263-DNA.paired_metaphlan_bowtie2.txt --nproc 12
+#504640 reads processed
+#SampleID	Metaphlan_Analysis
+#clade_name	NCBI_tax_id	relative_abundance	additional_species
+k__Bacteria	2	100.0	
+k__Bacteria|p__Firmicutes	2|1239	86.12246	
+k__Bacteria|p__Actinobacteria	2|201174	12.03454	
+k__Bacteria|p__Proteobacteria	2|1224	1.843	
+k__Bacteria|p__Firmicutes|c__Bacilli	2|1239|91061	86.12246	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia	2|201174|1760	12.03454	
+k__Bacteria|p__Proteobacteria|c__CFGB2428	2|1224|	1.77763	
+k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria	2|1224|28211	0.06537	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales	2|1239|91061|186826	86.12246	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428	2|1224||	1.77763	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Actinomycetia_unclassified	2|201174|1760|	0.08656	
+k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales	2|1224|28211|204455	0.06537	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae	2|1239|91061|186826|186828	85.91151	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae	2|201174|1760|85007|1653	11.94798	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428	2|1224|||	1.77763	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Streptococcaceae	2|1239|91061|186826|1300	0.21095	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Actinomycetia_unclassified|f__Actinomycetia_unclassified	2|201174|1760||	0.08656	
+k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae	2|1224|28211|204455|31989	0.06537	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum	2|1239|91061|186826|186828|29393	85.91151	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium	2|201174|1760|85007|1653|1716	11.94798	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428|g__GGB6646	2|1224||||	1.77763	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Streptococcaceae|g__Streptococcus	2|1239|91061|186826|1300|1301	0.21095	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Actinomycetia_unclassified|f__Actinomycetia_unclassified|g__Actinomycetia_unclassified	2|201174|1760|||	0.08656	
+k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus	2|1224|28211|204455|31989|265	0.06537	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum	2|1239|91061|186826|186828|29393|29394	85.91151	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_pseudodiphtheriticum	2|201174|1760|85007|1653|1716|37637	11.94798	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428|g__GGB6646|s__GGB6646_SGB9384	2|1224|||||	1.77763	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Streptococcaceae|g__Streptococcus|s__Streptococcus_peroris	2|1239|91061|186826|1300|1301|68891	0.21095	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Actinomycetia_unclassified|f__Actinomycetia_unclassified|g__Actinomycetia_unclassified|s__actinobacterium_LLX17	2|201174|1760||||1229203	0.08656	
+k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus|s__Paracoccus_haeundaensis	2|1224|28211|204455|31989|265|225362	0.06537	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum|t__SGB7017	2|1239|91061|186826|186828|29393|29394|	85.91151	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_pseudodiphtheriticum|t__SGB17013	2|201174|1760|85007|1653|1716|37637|	11.94798	k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_sp_EPI_003_04_2554_SCH2473622,k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_sp_KPL1995
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428|g__GGB6646|s__GGB6646_SGB9384|t__SGB9384	2|1224||||||	1.77763	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Streptococcaceae|g__Streptococcus|s__Streptococcus_peroris|t__SGB8084	2|1239|91061|186826|1300|1301|68891|	0.21095	k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Streptococcaceae|g__Streptococcus|s__Streptococcus_sp_HMSC34B10
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Actinomycetia_unclassified|f__Actinomycetia_unclassified|g__Actinomycetia_unclassified|s__actinobacterium_LLX17|t__SGB34133	2|201174|1760||||1229203|	0.08656	
+k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus|s__Paracoccus_haeundaensis|t__SGB10707	2|1224|28211|204455|31989|265|225362|	0.06537	k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus|s__Paracoccus_sp_228,k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus|s__Paracoccus_marcusii,k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus|s__Paracoccus_sp_Arc7_R13,k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus|s__Paracoccus_sp_S4493,k__Bacteria|p__Proteobacteria|c__Alphaproteobacteria|o__Rhodobacterales|f__Rhodobacteraceae|g__Paracoccus|s__Paracoccus_sp_NBH48

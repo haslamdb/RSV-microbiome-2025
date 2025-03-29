@@ -1,0 +1,26 @@
+#mpa_vOct22_CHOCOPhlAnSGB_202212
+#/usr/local/miniconda3/bin/metaphlan /home/david/Analysis/TrimmedMSSFiles/3001384568-DNA.paired.fastq -t rel_ab -o /home/david/Documents/Alignments/Humann3Alignments/3001384568-DNA/3001384568-DNA.paired_humann_temp/3001384568-DNA.paired_metaphlan_bugs_list.tsv --input_type fastq --bowtie2out /home/david/Documents/Alignments/Humann3Alignments/3001384568-DNA/3001384568-DNA.paired_humann_temp/3001384568-DNA.paired_metaphlan_bowtie2.txt --nproc 12
+#45091 reads processed
+#SampleID	Metaphlan_Analysis
+#clade_name	NCBI_tax_id	relative_abundance	additional_species
+k__Bacteria	2	100.0	
+k__Bacteria|p__Proteobacteria	2|1224	52.69145	
+k__Bacteria|p__Firmicutes	2|1239	36.48202	
+k__Bacteria|p__Actinobacteria	2|201174	10.82653	
+k__Bacteria|p__Proteobacteria|c__CFGB2428	2|1224|	52.69145	
+k__Bacteria|p__Firmicutes|c__Bacilli	2|1239|91061	36.48202	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia	2|201174|1760	10.82653	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428	2|1224||	52.69145	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales	2|1239|91061|186826	36.48202	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428	2|1224|||	52.69145	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae	2|1239|91061|186826|186828	36.48202	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae	2|201174|1760|85007|1653	10.82653	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428|g__GGB6646	2|1224||||	52.69145	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum	2|1239|91061|186826|186828|29393	36.48202	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium	2|201174|1760|85007|1653|1716	10.82653	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428|g__GGB6646|s__GGB6646_SGB9384	2|1224|||||	52.69145	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum	2|1239|91061|186826|186828|29393|29394	36.48202	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_pseudodiphtheriticum	2|201174|1760|85007|1653|1716|37637	10.82653	
+k__Bacteria|p__Proteobacteria|c__CFGB2428|o__OFGB2428|f__FGB2428|g__GGB6646|s__GGB6646_SGB9384|t__SGB9384	2|1224||||||	52.69145	
+k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactobacillales|f__Carnobacteriaceae|g__Dolosigranulum|s__Dolosigranulum_pigrum|t__SGB7017	2|1239|91061|186826|186828|29393|29394|	36.48202	
+k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_pseudodiphtheriticum|t__SGB17013	2|201174|1760|85007|1653|1716|37637|	10.82653	k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_sp_EPI_003_04_2554_SCH2473622,k__Bacteria|p__Actinobacteria|c__Actinomycetia|o__Corynebacteriales|f__Corynebacteriaceae|g__Corynebacterium|s__Corynebacterium_sp_KPL1995
