@@ -75,6 +75,9 @@ def main():
     results_dir = project_root / 'results'
     figures_dir = results_dir / 'figures'
     tables_dir = results_dir / 'tables'
+
+    output_dir = os.path.join("results", "figures")  
+    os.makedirs(output_dir, exist_ok=True)
     
     # Create directories if they don't exist
     figures_dir.mkdir(exist_ok=True, parents=True)
@@ -208,61 +211,71 @@ def main():
         # Join alpha diversity with metadata for time plot
         alpha_time_df = alpha_df.join(metadata_df[[time_var]], how='inner')
         
-        # Plot for each metric
         # Create boxplots for time analysis
-        for metric in alpha_metrics:
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            # Count samples in each time point
-            time_counts = alpha_time_df[time_var].value_counts()
-            
-            # Only include time points with enough samples
-            valid_times = time_counts[time_counts >= 2].index
-            
-            if len(valid_times) >= 2:
-                # Filter to valid time points
-                plot_data = alpha_time_df[alpha_time_df[time_var].isin(valid_times)]
-                
-                try:
-                    # Create boxplot
-                    sns_plot = sns.boxplot(x=time_var, y=metric, data=plot_data, ax=ax)
-                    ax.set_title(f'{metric} Diversity Over {time_var}')
-                    ax.set_xlabel(time_var)
-                    ax.set_ylabel(f'{metric} Diversity')
-                    
-                    # Rotate x-axis labels if needed
-                    plt.xticks(rotation=45)
-                    plt.tight_layout()
-                    
-                    # Save the figure
-                    fig.savefig(os.path.join(output_dir, f'alpha_{metric}_{time_var}.png'), dpi=300)
-                    print(f"  Time series plot for {metric} saved")
-                    
-                except Exception as e:
-                    # Handle plotting error
-                    ax.text(0.5, 0.5, f"Error creating plot: {str(e)}",
-                        horizontalalignment='center', verticalalignment='center',
-                        transform=ax.transAxes, fontsize=12, color='red')
-                    ax.set_title(f'{metric} Diversity Over {time_var}')
-                    ax.axis('off')
-                    
-                    # Save the error message figure
-                    fig.savefig(os.path.join(output_dir, f'alpha_{metric}_{time_var}_error.png'), dpi=300)
-                    print(f"  Error creating time series plot for {metric}: {str(e)}")
-            else:
-                # Not enough valid time points
-                ax.text(0.5, 0.5, "Insufficient data points\nfor time series analysis",
-                    horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes, fontsize=12)
-                ax.set_title(f'{metric} Diversity Over {time_var}')
-                ax.axis('off')
-                
-                # Save the message figure
-                fig.savefig(os.path.join(output_dir, f'alpha_{metric}_{time_var}_insufficient.png'), dpi=300)
-                print(f"  Insufficient data for time series plot for {metric}")
-            
-            plt.close(fig)
+for metric in alpha_metrics:
+    fig, ax = plt.subplots(figsize=(10, 6))
     
+    # Check if the metric exists in the dataframe
+    actual_metric = None
+    for col in alpha_time_df.columns:
+        if col.lower() == metric.lower():
+            actual_metric = col
+            break
+    
+    if actual_metric is None:
+        print(f"Error: Metric '{metric}' not found in dataframe. Available metrics: {', '.join(alpha_time_df.columns)}")
+        continue
+    
+    # Count samples in each time point
+    time_counts = alpha_time_df[time_var].value_counts()
+    
+    # Only include time points with enough samples
+    valid_times = time_counts[time_counts >= 2].index
+    
+    if len(valid_times) >= 2:
+        # Filter to valid time points
+        plot_data = alpha_time_df[alpha_time_df[time_var].isin(valid_times)]
+        
+        try:
+            # Create boxplot with the correct metric name
+            sns_plot = sns.boxplot(x=time_var, y=actual_metric, data=plot_data, ax=ax)
+            ax.set_title(f'{actual_metric} Diversity Over {time_var}')
+            ax.set_xlabel(time_var)
+            ax.set_ylabel(f'{actual_metric} Diversity')
+            
+            # Rotate x-axis labels if needed
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            
+            # Save the figure
+            fig.savefig(os.path.join(output_dir, f'alpha_{actual_metric}_{time_var}.png'), dpi=300)
+            print(f"  Time series plot for {actual_metric} saved")
+            
+        except Exception as e:
+            # Handle plotting error
+            ax.text(0.5, 0.5, f"Error creating plot: {str(e)}",
+                   horizontalalignment='center', verticalalignment='center',
+                   transform=ax.transAxes, fontsize=12, color='red')
+            ax.set_title(f'{actual_metric} Diversity Over {time_var}')
+            ax.axis('off')
+            
+            # Save the error message figure
+            fig.savefig(os.path.join(output_dir, f'alpha_{actual_metric}_{time_var}_error.png'), dpi=300)
+            print(f"  Error creating time series plot for {actual_metric}: {str(e)}")
+    else:
+        # Not enough valid time points
+        ax.text(0.5, 0.5, "Insufficient data points\nfor time series analysis",
+               horizontalalignment='center', verticalalignment='center',
+               transform=ax.transAxes, fontsize=12)
+        ax.set_title(f'{metric} Diversity Over {time_var}')
+        ax.axis('off')
+        
+        # Save the message figure
+        fig.savefig(os.path.join(output_dir, f'alpha_{metric}_{time_var}_insufficient.png'), dpi=300)
+        print(f"  Insufficient data for time series plot for {metric}")
+    
+    plt.close(fig)
+        
     print("\nDiversity analysis complete!")
 
 
