@@ -6,8 +6,8 @@ metadata:
   filename: "metadata.csv"
   sample_id_column: "SampleID"
   subject_id_column: "SubjectID"
-  time_variable: "Timing"
-  group_variables: ["Severity", "Symptoms"]
+  time_variable: ["Timing"]
+  group_variables: ["Timing", "Severity", "Symptoms"]
   join_with_abundance: true
 
 # MetaPhlAn file processing
@@ -31,7 +31,7 @@ differential_abundance:
   
 # Longitudinal analysis
 longitudinal:
-  analyze_top_n_species: 10  # Number of most abundant species to analyze
+  analyze_top_n_species: 15  # Number of most abundant species to analyze
   
 # Visualization
 visualization:
@@ -44,4 +44,4 @@ visualization:
 output:
   save_tables: true
   save_figures: true
-  figure_format: "png"
+  figure_format: "pdf"

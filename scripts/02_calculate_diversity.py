@@ -31,12 +31,9 @@ sys.path.append(str(project_root))
 tools_dir = project_root / 'tools'
 sys.path.append(str(tools_dir))
 
-# Now import metaphlan_tools functions
-from metaphlan_tools import parse_metaphlan_file, combine_samples, load_metadata
-
 
 # Import functions from metaphlan_tools
-from metaphlan_tools import (
+from metaphlan_tools import (       
     load_metadata,
     calculate_alpha_diversity,
     compare_alpha_diversity,
