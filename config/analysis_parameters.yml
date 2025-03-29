@@ -1,0 +1,47 @@
+# config/analysis_parameters.yml
+# Configuration for RSV-microbiome-2025 analysis
+
+# Metadata settings
+metadata:
+  filename: "metadata.csv"
+  sample_id_column: "SampleID"
+  subject_id_column: "SubjectID"
+  time_variable: "Timing"
+  group_variables: ["Severity", "Symptoms"]
+  join_with_abundance: true
+
+# MetaPhlAn file processing
+metaphlan:
+  file_pattern: "*.txt"
+  sample_id_delimiter: "."  # e.g., SampleID.metaphlan_profile.txt
+  taxonomic_level: "species"
+
+# Diversity analysis
+diversity:
+  alpha_metrics: ["shannon", "simpson", "observed_otus"]
+  beta_metric: "braycurtis"
+  permanova_permutations: 999
+  
+# Differential abundance analysis
+differential_abundance:
+  min_prevalence: 0.1  # Minimum prevalence to include species (fraction of samples)
+  min_abundance: 0.01  # Minimum mean relative abundance to include species
+  p_value_threshold: 0.05
+  multiple_testing_correction: "fdr_bh"
+  
+# Longitudinal analysis
+longitudinal:
+  analyze_top_n_species: 10  # Number of most abundant species to analyze
+  
+# Visualization
+visualization:
+  heatmap_top_n: 30
+  heatmap_colormap: "viridis"
+  color_palette: "Set2"
+  figure_dpi: 300
+  
+# Output settings
+output:
+  save_tables: true
+  save_figures: true
+  figure_format: "png"
