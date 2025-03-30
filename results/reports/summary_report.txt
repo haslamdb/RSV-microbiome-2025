@@ -1,0 +1,66 @@
+======================================================
+RSV MICROBIOME ANALYSIS SUMMARY REPORT
+Generated on 2025-03-29
+======================================================
+
+DATASET SUMMARY
+--------------
+Number of samples: 181
+Number of species: 105
+Number of subjects: 83
+Time points: Prior, Acute, Post
+
+CLINICAL GROUPS
+--------------
+Timing groups: Prior, Acute, Post
+Distribution: Prior: 83, Acute: 83, Post: 71
+
+Severity groups: 0, 1, 2, 3, 4
+Distribution: 2: 89, 0: 67, 1: 53, 3: 25, 4: 3
+
+Symptoms groups: Asymptomatic, Mild, Severe
+Distribution: Mild: 142, Asymptomatic: 67, Severe: 28
+
+KEY FINDINGS
+------------
+1. Significant differences in community composition were found between Severity groups (PERMANOVA p=0.023).
+2. 1 species showed significant temporal patterns across Timing points.
+
+DIVERSITY ANALYSIS
+-----------------
+Alpha Diversity:
+Alpha diversity metrics were calculated for all samples. The mean Shannon diversity index was 0.50.
+
+Beta Diversity:
+Beta diversity was calculated using the braycurtis distance metric. PERMANOVA analysis was performed to test for differences in community composition.
+
+DIFFERENTIAL ABUNDANCE
+---------------------
+Significantly different species by group:
+LONGITUDINAL ANALYSIS
+--------------------
+Longitudinal analysis identified 1 species with significant changes over Timing. The most dynamic species included Streptococcus_pneumoniae.
+
+Species with significant temporal patterns:
+  1. Streptococcus_pneumoniae (p=3.369e-02)
+
+TOP ABUNDANT SPECIES
+------------------
+1. Moraxella_nonliquefaciens (mean: 19.30%, prevalence: 39.8%)
+2. Dolosigranulum_pigrum (mean: 16.80%, prevalence: 43.1%)
+3. Moraxella_lincolnii (mean: 14.78%, prevalence: 20.4%)
+4. Haemophilus_influenzae (mean: 11.63%, prevalence: 21.5%)
+5. Streptococcus_pneumoniae (mean: 9.72%, prevalence: 23.2%)
+6. Corynebacterium_pseudodiphtheriticum (mean: 5.42%, prevalence: 29.8%)
+7. Moraxella_catarrhalis (mean: 4.16%, prevalence: 21.0%)
+8. Corynebacterium_propinquum (mean: 3.16%, prevalence: 6.1%)
+9. Moraxella_lacunata (mean: 2.57%, prevalence: 3.3%)
+10. Cutibacterium_acnes (mean: 2.09%, prevalence: 3.9%)
+11. Streptococcus_thermophilus (mean: 1.66%, prevalence: 2.8%)
+12. Streptococcus_mitis (mean: 1.16%, prevalence: 5.5%)
+13. Staphylococcus_aureus (mean: 1.06%, prevalence: 2.2%)
+14. Bifidobacterium_longum (mean: 0.64%, prevalence: 1.1%)
+15. Bifidobacterium_breve (mean: 0.56%, prevalence: 1.1%)
+
+======================================================
+End of report
