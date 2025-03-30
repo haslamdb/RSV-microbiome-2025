@@ -26,15 +26,32 @@ from pathlib import Path
 from scipy import stats
 from statsmodels.stats.multitest import multipletests
 
+import os
+import sys
+from pathlib import Path
+
+# Print current directory and sys.path to debug
+print(f"Current working directory: {os.getcwd()}")
+print(f"Script location: {__file__}")
+
 # Add project root to Python path
 project_root = Path(__file__).resolve().parents[1]
+print(f"Project root: {project_root}")
 sys.path.append(str(project_root))
 
-# Add tools directory to Python path (NOT tools/sylph_tools)
+# Add tools directory to Python path
 tools_dir = project_root / 'tools'
+print(f"Tools directory: {tools_dir}")
+print(f"Tools directory exists: {os.path.exists(tools_dir)}")
+print(f"sylph_tools directory exists: {os.path.exists(tools_dir / 'sylph_tools')}")
 sys.path.append(str(tools_dir))
 
-# Now the import should work
+# Print sys.path after modifications
+print("sys.path after modifications:")
+for path in sys.path:
+    print(f"  - {path}")
+
+# Try to import
 try:
     from sylph_tools import (
         load_metadata,
@@ -42,23 +59,12 @@ try:
         filter_low_abundance
     )
     tools_available = True
-except ImportError:
+    print("Successfully imported sylph_tools!")
+except ImportError as e:
     tools_available = False
-    print("Warning: sylph_tools module not available. Using built-in functions.")
-
-# Try to import from sylph_tools if available
-try:
-    from sylph_tools import (
-        load_metadata,
-        calculate_alpha_diversity,
-        filter_low_abundance
-    )
-    tools_available = True
-except ImportError:
-    tools_available = False
-    print("Warning: sylph_tools module not available. Using built-in functions.")
-
+    print(f"Warning: sylph_tools module not available. Error: {e}")
     
+        
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Analyze longitudinal Sylph data')
