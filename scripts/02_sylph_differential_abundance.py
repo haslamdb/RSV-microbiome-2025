@@ -442,6 +442,17 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
     
     # Create figure
     fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Define the correct order for time points
+    time_order = ['Prior', 'Acute', 'Post']
+    
+    # Create a categorical variable with the correct order
+    plot_data[time_var] = pd.Categorical(
+        plot_data[time_var],
+        categories=time_order,
+        ordered=True
+    )
+    
     
     # Create boxplot
     sns.boxplot(x=time_var, y='Abundance', data=plot_data, ax=ax)
@@ -662,6 +673,17 @@ def plot_taxa_boxplot(abundance_df, metadata_df, taxon, time_var, group_var, out
     
     # Get metadata information
     meta_subset = metadata_df.loc[common_samples, [time_var, group_var]].copy()
+
+    # Define the correct order for time points
+    time_order = ['Prior', 'Acute', 'Post']
+    
+    # Create a categorical variable with the correct order
+    plot_data[time_var] = pd.Categorical(
+        plot_data[time_var],
+        categories=time_order,
+        ordered=True
+    )
+    
     
     # Create a DataFrame for plotting
     plot_data = pd.DataFrame({
@@ -754,6 +776,17 @@ def analyze_by_timepoint(abundance_df, metadata_df, time_var, group_vars, adjust
         print(f"Error: Time variable '{time_var}' not found in metadata")
         return {}
     
+        # Define the correct order for time points
+    time_order = ['Prior', 'Acute', 'Post']
+    
+    # Create a categorical variable with the correct order
+    time_var = pd.Categorical(
+        plot_data[time_var],
+        categories=time_order,
+        ordered=True
+    )
+    
+    
     # Get all time points
     time_points = metadata_df[time_var].unique()
     
@@ -835,6 +868,17 @@ def analyze_by_timing(abundance_df, metadata_df, time_var, adjusted_p_threshold=
     if time_var not in metadata_df.columns:
         print(f"Error: Time variable '{time_var}' not found in metadata")
         return pd.DataFrame()
+    
+        # Define the correct order for time points
+    time_order = ['Prior', 'Acute', 'Post']
+    
+    # Create a categorical variable with the correct order
+    time_var = pd.Categorical(
+        plot_data[time_var],
+        categories=time_order,
+        ordered=True
+    )
+    
     
     # Get all time points
     time_points = sorted(metadata_df[time_var].unique())
