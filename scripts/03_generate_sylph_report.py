@@ -6,6 +6,9 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+import argparse
+from pathlib import Path
+
 
 # Add project root to Python path
 project_root = Path(__file__).resolve().parents[1]
@@ -13,6 +16,9 @@ sys.path.append(str(project_root))
 
 # Add tools directory to Python path
 tools_dir = project_root / 'tools'
+print(f"Tools directory: {tools_dir}")
+print(f"Tools directory exists: {os.path.exists(tools_dir)}")
+print(f"sylph_tools directory exists: {os.path.exists(tools_dir / 'sylph_tools')}")
 sys.path.append(str(tools_dir))
 
 # Now the import should work
@@ -27,45 +33,45 @@ except ImportError:
     tools_available = False
     print("Warning: sylph_tools module not available. Using built-in functions.")
 
-def load_metadata(filepath, sample_id_column='SampleID'):
-    """
-    Load metadata from a CSV file.
+# def load_metadata(filepath, sample_id_column='SampleID'):
+#     """
+#     Load metadata from a CSV file.
     
-    Parameters:
-    -----------
-    filepath : str
-        Path to the metadata file
-    sample_id_column : str
-        Column name for sample IDs
+#     Parameters:
+#     -----------
+#     filepath : str
+#         Path to the metadata file
+#     sample_id_column : str
+#         Column name for sample IDs
         
-    Returns:
-    --------
-    pandas.DataFrame
-        Metadata DataFrame with sample IDs as index
-    """
-    try:
-        metadata_df = pd.read_csv(filepath)
+#     Returns:
+#     --------
+#     pandas.DataFrame
+#         Metadata DataFrame with sample IDs as index
+#     """
+#     try:
+#         metadata_df = pd.read_csv(filepath)
         
-        # Check if the sample ID column exists
-        if sample_id_column not in metadata_df.columns:
-            raise ValueError(f"Sample ID column '{sample_id_column}' not found in metadata")
+#         # Check if the sample ID column exists
+#         if sample_id_column not in metadata_df.columns:
+#             raise ValueError(f"Sample ID column '{sample_id_column}' not found in metadata")
             
-        # Set index and remove any duplicate sample IDs
-        metadata_df = metadata_df.set_index(sample_id_column)
-        if metadata_df.index.duplicated().any():
-            print(f"Warning: Found {metadata_df.index.duplicated().sum()} duplicate sample IDs in metadata")
-            metadata_df = metadata_df[~metadata_df.index.duplicated(keep='first')]
+#         # Set index and remove any duplicate sample IDs
+#         metadata_df = metadata_df.set_index(sample_id_column)
+#         if metadata_df.index.duplicated().any():
+#             print(f"Warning: Found {metadata_df.index.duplicated().sum()} duplicate sample IDs in metadata")
+#             metadata_df = metadata_df[~metadata_df.index.duplicated(keep='first')]
         
-        # Convert categorical variables to string
-        for col in metadata_df.columns:
-            if metadata_df[col].dtype == 'object' or metadata_df[col].dtype.name == 'category':
-                metadata_df[col] = metadata_df[col].astype(str)
+#         # Convert categorical variables to string
+#         for col in metadata_df.columns:
+#             if metadata_df[col].dtype == 'object' or metadata_df[col].dtype.name == 'category':
+#                 metadata_df[col] = metadata_df[col].astype(str)
         
-        return metadata_df
+#         return metadata_df
     
-    except Exception as e:
-        print(f"Error loading metadata: {str(e)}")
-        return pd.DataFrame()
+#     except Exception as e:
+#         print(f"Error loading metadata: {str(e)}")
+#         return pd.DataFrame()
 
 
 def preprocess_abundance_data(abundance_df, normalize=True, log_transform=False, clr_transform=False):
@@ -123,38 +129,38 @@ def preprocess_abundance_data(abundance_df, normalize=True, log_transform=False,
     return processed_df
 
 
-def filter_low_abundance(abundance_df, min_prevalence=0.1, min_abundance=0.01):
-    """
-    Filter out low abundance and low prevalence taxa.
+# def filter_low_abundance(abundance_df, min_prevalence=0.1, min_abundance=0.01):
+#     """
+#     Filter out low abundance and low prevalence taxa.
     
-    Parameters:
-    -----------
-    abundance_df : pandas.DataFrame
-        Taxa abundance DataFrame with taxa as index, samples as columns
-    min_prevalence : float
-        Minimum fraction of samples in which a taxon must be present
-    min_abundance : float
-        Minimum mean relative abundance a taxon must have
+#     Parameters:
+#     -----------
+#     abundance_df : pandas.DataFrame
+#         Taxa abundance DataFrame with taxa as index, samples as columns
+#     min_prevalence : float
+#         Minimum fraction of samples in which a taxon must be present
+#     min_abundance : float
+#         Minimum mean relative abundance a taxon must have
         
-    Returns:
-    --------
-    pandas.DataFrame
-        Filtered abundance DataFrame
-    """
-    # Calculate prevalence (fraction of samples where taxon is present)
-    prevalence = (abundance_df > 0).mean(axis=1)
+#     Returns:
+#     --------
+#     pandas.DataFrame
+#         Filtered abundance DataFrame
+#     """
+#     # Calculate prevalence (fraction of samples where taxon is present)
+#     prevalence = (abundance_df > 0).mean(axis=1)
     
-    # Calculate mean abundance
-    mean_abundance = abundance_df.mean(axis=1)
+#     # Calculate mean abundance
+#     mean_abundance = abundance_df.mean(axis=1)
     
-    # Filter based on thresholds
-    keep_taxa = (prevalence >= min_prevalence) & (mean_abundance >= min_abundance)
+#     # Filter based on thresholds
+#     keep_taxa = (prevalence >= min_prevalence) & (mean_abundance >= min_abundance)
     
-    print(f"Filtering from {len(abundance_df)} to {keep_taxa.sum()} taxa")
-    print(f"  Prevalence threshold: {min_prevalence:.2f} (must be present in {min_prevalence*100:.1f}% of samples)")
-    print(f"  Abundance threshold: {min_abundance:.4f} (must have mean abundance ≥ {min_abundance*100:.2f}%)")
+#     print(f"Filtering from {len(abundance_df)} to {keep_taxa.sum()} taxa")
+#     print(f"  Prevalence threshold: {min_prevalence:.2f} (must be present in {min_prevalence*100:.1f}% of samples)")
+#     print(f"  Abundance threshold: {min_abundance:.4f} (must have mean abundance ≥ {min_abundance*100:.2f}%)")
     
-    return abundance_df.loc[keep_taxa]
+#     return abundance_df.loc[keep_taxa]
 
 
 def create_abundance_summary(abundance_df, metadata_df=None, group_var=None, top_n=20):
