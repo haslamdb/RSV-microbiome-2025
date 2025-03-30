@@ -34,7 +34,20 @@ sys.path.append(str(project_root))
 tools_dir = project_root / 'tools'
 sys.path.append(str(tools_dir))
 
-# Now the import should work
+# Try to import from sylph_tools if available
+try:
+    from sylph_tools import (
+        load_metadata,
+        calculate_alpha_diversity,
+        filter_low_abundance
+    )
+    tools_available = True
+except ImportError:
+    tools_available = False
+    print("Warning: sylph_tools module not available. Using built-in functions.")
+
+
+# Try to import from sylph_tools if available
 try:
     from sylph_tools import (
         load_metadata,
