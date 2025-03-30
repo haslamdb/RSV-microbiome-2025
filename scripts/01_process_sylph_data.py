@@ -1110,7 +1110,7 @@ def main():
     args = parse_args()
     
     # Set up matplotlib style
-    plt.style.use('seaborn-whitegrid')
+    plt.style.use('seaborn-v0_8-whitegrid')  
     
     # Load configuration
     config_path = project_root / args.config
