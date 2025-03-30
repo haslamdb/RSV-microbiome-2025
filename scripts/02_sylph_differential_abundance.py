@@ -476,238 +476,6 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
     
     return fig
 
-def main():
-    """Main function for RSV microbiome analysis."""
-    # Parse arguments
-    args = parse_args()
-    
-    # Set up output directories
-    output_dir = Path(args.output_dir)
-    abundance_dir = output_dir / "abundance_tables"
-    results_dir = output_dir / "results"
-    figures_dir = output_dir / "figures"
-    boxplots_dir = figures_dir / "boxplots"
-    
-    # Create output directories
-    for dir_path in [output_dir, abundance_dir, results_dir, figures_dir, boxplots_dir]:
-        os.makedirs(dir_path, exist_ok=True)
-    
-    print(f"Output will be saved to {output_dir}")
-    
-    # Process Sylph files for bacteria, viruses, and fungi
-    print("\n1. Processing Sylph output files")
-    
-    # Find bacterial profiles
-    bacteria_pattern = os.path.join(args.input_dir, "*profiled_bacteria.tsv")
-    bacteria_files = glob.glob(bacteria_pattern)
-    
-    if bacteria_files:
-        print(f"\nProcessing {len(bacteria_files)} bacterial profile files...")
-        bacteria_df = combine_sylph_samples(
-            bacteria_files, 
-            abundance_type=args.abundance_type,
-            min_ani=args.min_ani,
-            min_coverage=args.min_coverage
-        )
-        
-        if not bacteria_df.empty:
-            # Save combined table
-            bacteria_file = abundance_dir / 'bacteria_abundance.csv'
-            bacteria_df.to_csv(bacteria_file)
-            print(f"Bacterial abundance table saved to {bacteria_file}")
-            print(f"Table contains {len(bacteria_df.index)} taxa across {len(bacteria_df.columns)} samples")
-    else:
-        print("No bacterial profile files found")
-        bacteria_df = pd.DataFrame()
-    
-    # Find viral profiles
-    virus_pattern = os.path.join(args.input_dir, "*profiled_viruses.tsv")
-    virus_files = glob.glob(virus_pattern)
-    
-    if virus_files:
-        print(f"\nProcessing {len(virus_files)} viral profile files...")
-        virus_df = combine_sylph_samples(
-            virus_files, 
-            abundance_type=args.abundance_type,
-            min_ani=args.min_ani,
-            min_coverage=args.min_coverage
-        )
-        
-        if not virus_df.empty:
-            # Save combined table
-            virus_file = abundance_dir / 'virus_abundance.csv'
-            virus_df.to_csv(virus_file)
-            print(f"Viral abundance table saved to {virus_file}")
-            print(f"Table contains {len(virus_df.index)} taxa across {len(virus_df.columns)} samples")
-    else:
-        print("No viral profile files found")
-        virus_df = pd.DataFrame()
-    
-    # Find fungal profiles
-    fungi_pattern = os.path.join(args.input_dir, "*profiled_fungi.tsv")
-    fungi_files = glob.glob(fungi_pattern)
-    
-    if fungi_files:
-        print(f"\nProcessing {len(fungi_files)} fungal profile files...")
-        fungi_df = combine_sylph_samples(
-            fungi_files, 
-            abundance_type=args.abundance_type,
-            min_ani=args.min_ani,
-            min_coverage=args.min_coverage
-        )
-        
-        if not fungi_df.empty:
-            # Save combined table
-            fungi_file = abundance_dir / 'fungi_abundance.csv'
-            fungi_df.to_csv(fungi_file)
-            print(f"Fungal abundance table saved to {fungi_file}")
-            print(f"Table contains {len(fungi_df.index)} taxa across {len(fungi_df.columns)} samples")
-    else:
-        print("No fungal profile files found")
-        fungi_df = pd.DataFrame()
-    
-    # Create a combined table with all microbes
-    print("\nCreating combined microbial abundance table...")
-    combined_tables = []
-    
-    if not bacteria_df.empty:
-        bacteria_df.index = ['Bacteria: ' + idx for idx in bacteria_df.index]
-        combined_tables.append(bacteria_df)
-        
-    if not virus_df.empty:
-        virus_df.index = ['Virus: ' + idx for idx in virus_df.index]
-        combined_tables.append(virus_df)
-        
-    if not fungi_df.empty:
-        fungi_df.index = ['Fungus: ' + idx for idx in fungi_df.index]
-        combined_tables.append(fungi_df)
-    
-    if combined_tables:
-        all_microbes_df = pd.concat(combined_tables)
-        all_microbes_file = abundance_dir / 'all_microbes_abundance.csv'
-        all_microbes_df.to_csv(all_microbes_file)
-        print(f"Combined microbial abundance table saved to {all_microbes_file}")
-        print(f"Table contains {len(all_microbes_df.index)} taxa across {len(all_microbes_df.columns)} samples")
-    else:
-        print("No data to combine into a microbial abundance table.")
-        return
-    
-    # Load metadata
-    print("\n2. Loading metadata")
-    if os.path.exists(args.metadata):
-        metadata_df = load_metadata(args.metadata, args.sample_id_column)
-        
-        if metadata_df.empty:
-            print("Error: Could not load metadata")
-            return
-            
-        print(f"Loaded metadata for {len(metadata_df)} samples")
-        
-        # Check sample overlap
-        common_samples = set(all_microbes_df.columns).intersection(set(metadata_df.index))
-        print(f"Found {len(common_samples)} samples in both abundance data and metadata")
-        
-        if len(common_samples) < 5:
-            print("Error: Not enough common samples for analysis")
-            return
-            
-    else:
-        print(f"Error: Metadata file not found at {args.metadata}")
-        return
-    
-    # Filter to keep only common samples
-    all_microbes_df = all_microbes_df[list(common_samples)]
-    
-    # Filter low-abundance and low-prevalence taxa
-    print("\n3. Filtering low-abundance and low-prevalence taxa")
-    filtered_df = filter_low_abundance(
-        all_microbes_df, 
-        min_prevalence=args.min_prevalence,
-        min_abundance=args.min_abundance
-    )
-    
-    # Save filtered abundance table
-    filtered_file = abundance_dir / 'filtered_abundance.csv'
-    filtered_df.to_csv(filtered_file)
-    print(f"Filtered abundance table saved to {filtered_file}")
-    
-    # Analyze by timing (Prior, Acute, Post)
-    print("\n4. Analyzing changes across timing (Prior, Acute, Post)")
-    timing_var = 'Timing'  # Adjust if your metadata uses a different column name
-    
-    if timing_var not in metadata_df.columns:
-        print(f"Error: Timing variable '{timing_var}' not found in metadata")
-        return
-        
-    timing_results = analyze_by_timing(filtered_df, metadata_df, timing_var)
-    
-    if not timing_results.empty:
-        # Save timing results
-        timing_file = results_dir / 'timing_differential_abundance.csv'
-        timing_results.to_csv(timing_file)
-        print(f"Timing analysis results saved to {timing_file}")
-        
-        # Create plots for top taxa
-        significant_taxa = timing_results[timing_results['Adjusted P-value'] < 0.05]['Taxon'].tolist()
-        
-        if significant_taxa:
-            print(f"\nCreating boxplots for {len(significant_taxa)} taxa with significant timing changes")
-            
-            for i, taxon in enumerate(significant_taxa[:10]):  # Plot top 10
-                try:
-                    output_file = boxplots_dir / f"timing_{taxon.replace(' ', '_').replace(':', '_')}.png"
-                    plot_timing_boxplot(filtered_df, metadata_df, taxon, timing_var, output_file)
-                except Exception as e:
-                    print(f"Error creating plot for {taxon}: {str(e)}")
-    
-    # Analyze by severity and symptoms at each time point
-    print("\n5. Analyzing differences by severity and symptoms at each time point")
-    group_vars = ['Severity', 'Symptoms']  # Adjust if your metadata uses different column names
-    
-    # Check if group variables exist in metadata
-    missing_vars = [var for var in group_vars if var not in metadata_df.columns]
-    if missing_vars:
-        print(f"Warning: The following group variables are missing from metadata: {missing_vars}")
-        group_vars = [var for var in group_vars if var not in missing_vars]
-        
-    if not group_vars:
-        print("Error: No valid group variables for analysis")
-        return
-    
-    # Perform analysis by time point for each group variable
-    time_point_results = analyze_by_timepoint(filtered_df, metadata_df, timing_var, group_vars)
-    
-    # Save results for each time point and group variable
-    for time_point, group_results in time_point_results.items():
-        for group_var, results_df in group_results.items():
-            if not results_df.empty:
-                # Save results
-                result_file = results_dir / f"{time_point}_{group_var}_differential_abundance.csv"
-                results_df.to_csv(result_file)
-                print(f"Results for {time_point} by {group_var} saved to {result_file}")
-                
-                # Create plots for significant taxa
-                significant_taxa = results_df[results_df['Adjusted P-value'] < 0.05]['Taxon'].tolist()
-                
-                if significant_taxa:
-                    print(f"\nCreating boxplots for {len(significant_taxa)} taxa with significant {group_var} differences at {time_point}")
-                    
-                    for i, taxon in enumerate(significant_taxa[:10]):  # Plot top 10
-                        try:
-                            output_file = boxplots_dir / f"{time_point}_{group_var}_{taxon.replace(' ', '_').replace(':', '_')}.png"
-                            plot_taxa_boxplot(filtered_df, metadata_df, taxon, timing_var, group_var, output_file)
-                        except Exception as e:
-                            print(f"Error creating plot for {taxon}: {str(e)}")
-    
-    print("\nAnalysis complete!")
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"Error in main execution: {str(e)}")
-        traceback.print_exc()
-
 def _two_group_differential_testing(abundance_df, groups, unique_groups):
     """Helper function for differential testing with two groups using Mann-Whitney U test."""
     # Initialize results
@@ -1208,3 +976,236 @@ def analyze_by_timing(abundance_df, metadata_df, time_var, adjusted_p_threshold=
                     print(f"  {i+1}. {row['Taxon']}: adj. p-value = {row['Adjusted P-value']:.4f}")
     
     return results_df
+
+def main():
+    """Main function for RSV microbiome analysis."""
+    # Parse arguments
+    args = parse_args()
+    
+    # Set up output directories
+    output_dir = Path(args.output_dir)
+    abundance_dir = output_dir / "abundance_tables"
+    results_dir = output_dir / "results"
+    figures_dir = output_dir / "figures"
+    boxplots_dir = figures_dir / "boxplots"
+    
+    # Create output directories
+    for dir_path in [output_dir, abundance_dir, results_dir, figures_dir, boxplots_dir]:
+        os.makedirs(dir_path, exist_ok=True)
+    
+    print(f"Output will be saved to {output_dir}")
+    
+    # Process Sylph files for bacteria, viruses, and fungi
+    print("\n1. Processing Sylph output files")
+    
+    # Find bacterial profiles
+    bacteria_pattern = os.path.join(args.input_dir, "*profiled_bacteria.tsv")
+    bacteria_files = glob.glob(bacteria_pattern)
+    
+    if bacteria_files:
+        print(f"\nProcessing {len(bacteria_files)} bacterial profile files...")
+        bacteria_df = combine_sylph_samples(
+            bacteria_files, 
+            abundance_type=args.abundance_type,
+            min_ani=args.min_ani,
+            min_coverage=args.min_coverage
+        )
+        
+        if not bacteria_df.empty:
+            # Save combined table
+            bacteria_file = abundance_dir / 'bacteria_abundance.csv'
+            bacteria_df.to_csv(bacteria_file)
+            print(f"Bacterial abundance table saved to {bacteria_file}")
+            print(f"Table contains {len(bacteria_df.index)} taxa across {len(bacteria_df.columns)} samples")
+    else:
+        print("No bacterial profile files found")
+        bacteria_df = pd.DataFrame()
+    
+    # Find viral profiles
+    virus_pattern = os.path.join(args.input_dir, "*profiled_viruses.tsv")
+    virus_files = glob.glob(virus_pattern)
+    
+    if virus_files:
+        print(f"\nProcessing {len(virus_files)} viral profile files...")
+        virus_df = combine_sylph_samples(
+            virus_files, 
+            abundance_type=args.abundance_type,
+            min_ani=args.min_ani,
+            min_coverage=args.min_coverage
+        )
+        
+        if not virus_df.empty:
+            # Save combined table
+            virus_file = abundance_dir / 'virus_abundance.csv'
+            virus_df.to_csv(virus_file)
+            print(f"Viral abundance table saved to {virus_file}")
+            print(f"Table contains {len(virus_df.index)} taxa across {len(virus_df.columns)} samples")
+    else:
+        print("No viral profile files found")
+        virus_df = pd.DataFrame()
+    
+    # Find fungal profiles
+    fungi_pattern = os.path.join(args.input_dir, "*profiled_fungi.tsv")
+    fungi_files = glob.glob(fungi_pattern)
+    
+    if fungi_files:
+        print(f"\nProcessing {len(fungi_files)} fungal profile files...")
+        fungi_df = combine_sylph_samples(
+            fungi_files, 
+            abundance_type=args.abundance_type,
+            min_ani=args.min_ani,
+            min_coverage=args.min_coverage
+        )
+        
+        if not fungi_df.empty:
+            # Save combined table
+            fungi_file = abundance_dir / 'fungi_abundance.csv'
+            fungi_df.to_csv(fungi_file)
+            print(f"Fungal abundance table saved to {fungi_file}")
+            print(f"Table contains {len(fungi_df.index)} taxa across {len(fungi_df.columns)} samples")
+    else:
+        print("No fungal profile files found")
+        fungi_df = pd.DataFrame()
+    
+    # Create a combined table with all microbes
+    print("\nCreating combined microbial abundance table...")
+    combined_tables = []
+    
+    if not bacteria_df.empty:
+        bacteria_df.index = ['Bacteria: ' + idx for idx in bacteria_df.index]
+        combined_tables.append(bacteria_df)
+        
+    if not virus_df.empty:
+        virus_df.index = ['Virus: ' + idx for idx in virus_df.index]
+        combined_tables.append(virus_df)
+        
+    if not fungi_df.empty:
+        fungi_df.index = ['Fungus: ' + idx for idx in fungi_df.index]
+        combined_tables.append(fungi_df)
+    
+    if combined_tables:
+        all_microbes_df = pd.concat(combined_tables)
+        all_microbes_file = abundance_dir / 'all_microbes_abundance.csv'
+        all_microbes_df.to_csv(all_microbes_file)
+        print(f"Combined microbial abundance table saved to {all_microbes_file}")
+        print(f"Table contains {len(all_microbes_df.index)} taxa across {len(all_microbes_df.columns)} samples")
+    else:
+        print("No data to combine into a microbial abundance table.")
+        return
+    
+    # Load metadata
+    print("\n2. Loading metadata")
+    if os.path.exists(args.metadata):
+        metadata_df = load_metadata(args.metadata, args.sample_id_column)
+        
+        if metadata_df.empty:
+            print("Error: Could not load metadata")
+            return
+            
+        print(f"Loaded metadata for {len(metadata_df)} samples")
+        
+        # Check sample overlap
+        common_samples = set(all_microbes_df.columns).intersection(set(metadata_df.index))
+        print(f"Found {len(common_samples)} samples in both abundance data and metadata")
+        
+        if len(common_samples) < 5:
+            print("Error: Not enough common samples for analysis")
+            return
+            
+    else:
+        print(f"Error: Metadata file not found at {args.metadata}")
+        return
+    
+    # Filter to keep only common samples
+    all_microbes_df = all_microbes_df[list(common_samples)]
+    
+    # Filter low-abundance and low-prevalence taxa
+    print("\n3. Filtering low-abundance and low-prevalence taxa")
+    filtered_df = filter_low_abundance(
+        all_microbes_df, 
+        min_prevalence=args.min_prevalence,
+        min_abundance=args.min_abundance
+    )
+    
+    # Save filtered abundance table
+    filtered_file = abundance_dir / 'filtered_abundance.csv'
+    filtered_df.to_csv(filtered_file)
+    print(f"Filtered abundance table saved to {filtered_file}")
+    
+    # Analyze by timing (Prior, Acute, Post)
+    print("\n4. Analyzing changes across timing (Prior, Acute, Post)")
+    timing_var = 'Timing'  # Adjust if your metadata uses a different column name
+    
+    if timing_var not in metadata_df.columns:
+        print(f"Error: Timing variable '{timing_var}' not found in metadata")
+        return
+        
+    timing_results = analyze_by_timing(filtered_df, metadata_df, timing_var)
+    
+    if not timing_results.empty:
+        # Save timing results
+        timing_file = results_dir / 'timing_differential_abundance.csv'
+        timing_results.to_csv(timing_file)
+        print(f"Timing analysis results saved to {timing_file}")
+        
+        # Create plots for top taxa
+        significant_taxa = timing_results[timing_results['Adjusted P-value'] < 0.05]['Taxon'].tolist()
+        
+        if significant_taxa:
+            print(f"\nCreating boxplots for {len(significant_taxa)} taxa with significant timing changes")
+            
+            for i, taxon in enumerate(significant_taxa[:10]):  # Plot top 10
+                try:
+                    output_file = boxplots_dir / f"timing_{taxon.replace(' ', '_').replace(':', '_')}.png"
+                    plot_timing_boxplot(filtered_df, metadata_df, taxon, timing_var, output_file)
+                except Exception as e:
+                    print(f"Error creating plot for {taxon}: {str(e)}")
+    
+    # Analyze by severity and symptoms at each time point
+    print("\n5. Analyzing differences by severity and symptoms at each time point")
+    group_vars = ['Severity', 'Symptoms']  # Adjust if your metadata uses different column names
+    
+    # Check if group variables exist in metadata
+    missing_vars = [var for var in group_vars if var not in metadata_df.columns]
+    if missing_vars:
+        print(f"Warning: The following group variables are missing from metadata: {missing_vars}")
+        group_vars = [var for var in group_vars if var not in missing_vars]
+        
+    if not group_vars:
+        print("Error: No valid group variables for analysis")
+        return
+    
+    # Perform analysis by time point for each group variable
+    time_point_results = analyze_by_timepoint(filtered_df, metadata_df, timing_var, group_vars)
+    
+    # Save results for each time point and group variable
+    for time_point, group_results in time_point_results.items():
+        for group_var, results_df in group_results.items():
+            if not results_df.empty:
+                # Save results
+                result_file = results_dir / f"{time_point}_{group_var}_differential_abundance.csv"
+                results_df.to_csv(result_file)
+                print(f"Results for {time_point} by {group_var} saved to {result_file}")
+                
+                # Create plots for significant taxa
+                significant_taxa = results_df[results_df['Adjusted P-value'] < 0.05]['Taxon'].tolist()
+                
+                if significant_taxa:
+                    print(f"\nCreating boxplots for {len(significant_taxa)} taxa with significant {group_var} differences at {time_point}")
+                    
+                    for i, taxon in enumerate(significant_taxa[:10]):  # Plot top 10
+                        try:
+                            output_file = boxplots_dir / f"{time_point}_{group_var}_{taxon.replace(' ', '_').replace(':', '_')}.png"
+                            plot_taxa_boxplot(filtered_df, metadata_df, taxon, timing_var, group_var, output_file)
+                        except Exception as e:
+                            print(f"Error creating plot for {taxon}: {str(e)}")
+    
+    print("\nAnalysis complete!")
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"Error in main execution: {str(e)}")
+        traceback.print_exc()
+
