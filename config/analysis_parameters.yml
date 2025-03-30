@@ -24,8 +24,8 @@ diversity:
   
 # Differential abundance analysis
 differential_abundance:
-  min_prevalence: 0.05  
-  min_abundance: 0.01  
+  min_prevalence: 0.01  
+  min_abundance: 0.005
   p_value_threshold: 0.1
   multiple_testing_correction: "fdr_bh"
   
