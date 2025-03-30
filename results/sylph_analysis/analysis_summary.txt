@@ -1,0 +1,32 @@
+=== Sylph Microbial Profiling Analysis Summary ===
+Analysis completed on 2025-03-29 23:37
+
+Dataset summary:
+- Raw abundance data: 192 taxa, 217 samples
+- Filtered abundance data: 37 taxa, 217 samples
+- Samples with metadata: 217
+
+Alpha diversity results:
+- Mean shannon: 0.785 (SD: 0.501)
+- Mean simpson: 0.434 (SD: 0.255)
+- Mean observed_otus: 3.295 (SD: 1.835)
+
+Beta diversity results (PERMANOVA):
+- Timing: p-value = 0.003 (significant)
+- Severity: p-value = 0.001 (significant)
+- Symptoms: p-value = 0.008 (significant)
+
+Differential abundance results:
+- Timing: 3 significantly different taxa (adj. p < 0.1)
+  Top significant taxa:
+  1. Bacteria: Cutibacterium acnes (adj. p-value = 2.015e-02)
+  2. Bacteria: Streptococcus pneumoniae (adj. p-value = 9.416e-02)
+  3. Bacteria: Streptococcus mitis (adj. p-value = 9.416e-02)
+- Severity: 3 significantly different taxa (adj. p < 0.1)
+  Top significant taxa:
+  1. Bacteria: Corynebacterium accolens (adj. p-value = 4.442e-06)
+  2. Bacteria: Haemophilus influenzae (adj. p-value = 1.645e-02)
+  3. Bacteria: Moraxella sp (adj. p-value = 3.368e-02)
+- Symptoms: 1 significantly different taxa (adj. p < 0.1)
+  Top significant taxa:
+  1. Bacteria: Corynebacterium accolens (adj. p-value = 3.060e-06)
