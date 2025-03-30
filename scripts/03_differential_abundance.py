@@ -201,7 +201,7 @@ def main():
                                     ha='center', va='bottom', fontsize=10,
                                     bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.7))
                         
-                        fig_file = species_boxplots_dir / f"{species.replace(' ', '_')}_{var}.png"
+                        fig_file = species_boxplots_dir / f"{species.replace(' ', '_')}_{var}.pdf"
                         fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
                         plt.close(fig)
                         print(f"    Boxplot saved to {fig_file}")
@@ -214,7 +214,7 @@ def main():
                     species_subset = filtered_abundance_df.loc[filtered_abundance_df.index.isin(top_species)]
                     
                     fig = plot_stacked_bar(species_subset, metadata_df, var)
-                    fig_file = figures_dir / f"composition_by_{var}.png"
+                    fig_file = figures_dir / f"composition_by_{var}.pdf"
                     fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
                     plt.close(fig)
                     print(f"  Stacked bar plot saved to {fig_file}")
@@ -272,7 +272,7 @@ def main():
                 figsize=(12, 10)
             )
             
-            heatmap_file = figures_dir / "differential_species_heatmap.png"
+            heatmap_file = figures_dir / "differential_species_heatmap.pdf"
             fig.savefig(heatmap_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
             print(f"Heatmap saved to {heatmap_file}")
