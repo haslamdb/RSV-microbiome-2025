@@ -26,7 +26,7 @@ import re
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Process Sylph output files')
-    parser.add_argument('--input-dir', type=str, default='SylphProfiles',
+    parser.add_argument('--input-dir', type=str, default='data/SylphProfiles',
                        help='Directory containing Sylph output files')
     parser.add_argument('--output-dir', type=str, default='data/processed',
                        help='Directory to save processed files')
