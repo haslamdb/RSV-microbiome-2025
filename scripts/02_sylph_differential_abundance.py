@@ -1156,7 +1156,7 @@ def main():
             
             for i, taxon in enumerate(significant_taxa[:10]):  # Plot top 10
                 try:
-                    output_file = boxplots_dir / f"timing_{taxon.replace(' ', '_').replace(':', '_')}.png"
+                    output_file = boxplots_dir / f"timing_{taxon.replace(' ', '_').replace(':', '_')}.pdf"
                     plot_timing_boxplot(filtered_df, metadata_df, taxon, timing_var, output_file)
                 except Exception as e:
                     print(f"Error creating plot for {taxon}: {str(e)}")
@@ -1195,7 +1195,7 @@ def main():
                     
                     for i, taxon in enumerate(significant_taxa[:10]):  # Plot top 10
                         try:
-                            output_file = boxplots_dir / f"{time_point}_{group_var}_{taxon.replace(' ', '_').replace(':', '_')}.png"
+                            output_file = boxplots_dir / f"{time_point}_{group_var}_{taxon.replace(' ', '_').replace(':', '_')}.pdf"
                             plot_taxa_boxplot(filtered_df, metadata_df, taxon, timing_var, group_var, output_file)
                         except Exception as e:
                             print(f"Error creating plot for {taxon}: {str(e)}")
