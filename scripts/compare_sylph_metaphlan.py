@@ -207,12 +207,31 @@ def compare_abundance_correlation(sylph_df, metaphlan_df, common_samples, common
     dict
         Dictionary with correlation statistics
     """
+    # Check if there are any common taxa
+    if not common_taxa:
+        print("No common taxa found between Sylph and MetaPhlAn. Skipping correlation analysis.")
+        return {
+            'taxa_correlations': pd.DataFrame(),
+            'mean_pearson': float('nan'),
+            'mean_spearman': float('nan'),
+            'significant_correlations': 0
+        }
+    
     # Filter to common samples and taxa
     sylph_subset = sylph_df.loc[sylph_df.index.isin(common_taxa), common_samples]
     metaphlan_subset = metaphlan_df.loc[metaphlan_df.index.isin(common_taxa), common_samples]
     
     # Ensure we're comparing the same taxa in the same order
     common_taxa_present = sorted(list(set(sylph_subset.index).intersection(set(metaphlan_subset.index))))
+    
+    if not common_taxa_present:
+        print("No common taxa found in both datasets after filtering. Skipping correlation analysis.")
+        return {
+            'taxa_correlations': pd.DataFrame(),
+            'mean_pearson': float('nan'),
+            'mean_spearman': float('nan'),
+            'significant_correlations': 0
+        }
     
     sylph_subset = sylph_subset.loc[common_taxa_present]
     metaphlan_subset = metaphlan_subset.loc[common_taxa_present]
@@ -249,12 +268,23 @@ def compare_abundance_correlation(sylph_df, metaphlan_df, common_samples, common
     # Create a DataFrame of correlation results
     correlation_df = pd.DataFrame(taxa_correlations)
     
+    # Calculate summary statistics, handling the case of an empty DataFrame
+    if correlation_df.empty:
+        mean_pearson = float('nan')
+        mean_spearman = float('nan')
+        significant_correlations = 0
+    else:
+        mean_pearson = correlation_df['pearson_r'].mean() if 'pearson_r' in correlation_df else float('nan')
+        mean_spearman = correlation_df['spearman_r'].mean() if 'spearman_r' in correlation_df else float('nan')
+        significant_correlations = sum((correlation_df['pearson_p'] < 0.05) & (~pd.isna(correlation_df['pearson_p']))) if 'pearson_p' in correlation_df else 0
+    
     return {
         'taxa_correlations': correlation_df,
-        'mean_pearson': correlation_df['pearson_r'].mean(),
-        'mean_spearman': correlation_df['spearman_r'].mean(),
-        'significant_correlations': sum((correlation_df['pearson_p'] < 0.05) & (~pd.isna(correlation_df['pearson_p'])))
+        'mean_pearson': mean_pearson,
+        'mean_spearman': mean_spearman,
+        'significant_correlations': significant_correlations
     }
+
 
 def plot_abundance_comparison(sylph_df, metaphlan_df, common_samples, common_taxa, output_dir):
     """
