@@ -446,6 +446,10 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
     # Define the correct order for time points
     time_order = ['Prior', 'Acute', 'Post']
     
+    # Ensure plot_data is initialized
+    plot_data = metadata_df.copy()
+
+
     # Create a categorical variable with the correct order
     plot_data[time_var] = pd.Categorical(
         plot_data[time_var],
@@ -780,8 +784,8 @@ def analyze_by_timepoint(abundance_df, metadata_df, time_var, group_vars, adjust
     time_order = ['Prior', 'Acute', 'Post']
     
     # Create a categorical variable with the correct order
-    time_var = pd.Categorical(
-        plot_data[time_var],
+    metadata_df[time_var] = pd.Categorical(
+        metadata_df[time_var],
         categories=time_order,
         ordered=True
     )
