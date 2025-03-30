@@ -27,6 +27,11 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[1]
 sys.path.append(str(project_root))
 
+# Add tools directory to Python path
+tools_dir = project_root / 'tools'
+sys.path.append(str(tools_dir))
+
+
 # Import functions from metaphlan_tools
 from metaphlan_tools import (
     load_metadata,
