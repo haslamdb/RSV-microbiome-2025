@@ -243,7 +243,7 @@ def main():
         ax.set_ylabel(f"{metric} Diversity")
         
         # Save figure
-        fig_file = longitudinal_dir / f"alpha_{metric}_by_{time_var}.png"
+        fig_file = longitudinal_dir / f"alpha_{metric}_by_{time_var}.pdf"
         fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
         plt.close(fig)
         print(f"  Alpha diversity time plot saved to {fig_file}")
@@ -287,7 +287,7 @@ def main():
                 plt.tight_layout(rect=[0, 0, 1, 0.95])  # Make room for suptitle
                 
                 # Save figure
-                fig_file = longitudinal_dir / f"alpha_{metric}_by_{time_var}_and_{group_var}.png"
+                fig_file = longitudinal_dir / f"alpha_{metric}_by_{time_var}_and_{group_var}.pdf"
                 fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
                 plt.close(fig)
                 print(f"  Faceted time plot saved to {fig_file}")
@@ -340,7 +340,7 @@ def main():
                            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.7))
             
             # Save figure
-            fig_file = longitudinal_dir / f"species_{species.replace(' ', '_')}_by_{time_var}.png"
+            fig_file = longitudinal_dir / f"species_{species.replace(' ', '_')}_by_{time_var}.pdf"
             fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
             plt.close(fig)
             print(f"    Plot saved to {fig_file}")
@@ -361,7 +361,7 @@ def main():
                     )
                     
                     # Save figure
-                    fig_file = longitudinal_dir / f"species_{species.replace(' ', '_')}_by_{time_var}_and_{group_var}.png"
+                    fig_file = longitudinal_dir / f"species_{species.replace(' ', '_')}_by_{time_var}_and_{group_var}.pdf"
                     fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
                     plt.close(fig)
                     print(f"    Plot with {group_var} saved to {fig_file}")
@@ -408,7 +408,7 @@ def main():
         ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         
         # Save figure
-        fig_file = figures_dir / f"top_species_stacked_by_{time_var}.png"
+        fig_file = figures_dir / f"top_species_stacked_by_{time_var}.pdf"
         fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
         plt.close(fig)
         print(f"Combined visualization saved to {fig_file}")
