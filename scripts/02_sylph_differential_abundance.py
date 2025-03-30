@@ -873,8 +873,8 @@ def analyze_by_timing(abundance_df, metadata_df, time_var, adjusted_p_threshold=
     time_order = ['Prior', 'Acute', 'Post']
     
     # Create a categorical variable with the correct order
-    time_var = pd.Categorical(
-        plot_data[time_var],
+    metadata_df[time_var] = pd.Categorical(
+        metadata_df[time_var],
         categories=time_order,
         ordered=True
     )
