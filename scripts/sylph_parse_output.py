@@ -120,15 +120,42 @@ def parse_sylph_file(file_path, abundance_type='Taxonomic_abundance', min_ani=95
     
     try:
         # Read the Sylph file
+        # Debug: Print first few lines of file
+        print(f"\nDebug - First 5 lines of {os.path.basename(file_path)}:")
+        with open(file_path, 'r') as f:
+            for i, line in enumerate(f):
+                if i < 5:
+                    print(f"  Line {i+1}: {line.strip()}")
+                else:
+                    break
+        
         # The file doesn't have a clean header - need to handle specially
         with open(file_path, 'r') as f:
             header_line = f.readline().strip()
         
         # Clean up header line and split into column names
         header_columns = re.split(r'\s+', header_line.strip())
+        print(f"  Detected columns: {header_columns}")
         
         # Read the file with the cleaned column names
-        df = pd.read_csv(file_path, sep='\t', skiprows=1, names=header_columns)
+        try:
+            df = pd.read_csv(file_path, sep='\t', skiprows=1, names=header_columns)
+            print(f"  Successfully read file with {len(df)} rows")
+            
+            # Print column names to debug
+            print(f"  Actual columns in DataFrame: {df.columns.tolist()}")
+            
+            # Check if required columns exist
+            required_cols = ['Adjusted_ANI', 'Eff_cov', 'Contig_name', abundance_type]
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            if missing_cols:
+                print(f"  Warning: Missing required columns: {missing_cols}")
+                print(f"  Available columns: {df.columns.tolist()}")
+                return pd.DataFrame()
+            
+        except Exception as e:
+            print(f"  Error reading CSV: {str(e)}")
+            return pd.DataFrame()
         
         # Filter based on ANI and coverage
         df = df[df['Adjusted_ANI'] >= min_ani]
@@ -329,7 +356,7 @@ def main():
         args.input_dir,
         args.output_dir,
         'bacteria',
-        '*_*profiled_*bacteria.tsv',
+        '*_profiled_bacteria.tsv',  # Fixed pattern to match actual files
         args
     )
     
@@ -337,7 +364,7 @@ def main():
         args.input_dir,
         args.output_dir,
         'viruses',
-        '*_*profiled_*viruses.tsv',
+        '*_profiled_viruses.tsv',  # Fixed pattern to match actual files
         args
     )
     
@@ -345,10 +372,9 @@ def main():
         args.input_dir,
         args.output_dir,
         'fungi',
-        '*_*profiled_*fungi.tsv',
+        '*_profiled_fungi.tsv',  # Fixed pattern to match actual files
         args
-    )
-    
+    )    
     # Load metadata if available
     if os.path.exists(args.metadata):
         print(f"\nLoading metadata from {args.metadata}")
