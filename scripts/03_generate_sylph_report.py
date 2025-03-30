@@ -5,12 +5,13 @@ Utility functions for sylph data processing and analysis.
 import pandas as pd
 import numpy as np
 import os
+import sys
 
 # Add project root to Python path
 project_root = Path(__file__).resolve().parents[1]
 sys.path.append(str(project_root))
 
-# Add tools directory to Python path (NOT tools/sylph_tools)
+# Add tools directory to Python path
 tools_dir = project_root / 'tools'
 sys.path.append(str(tools_dir))
 

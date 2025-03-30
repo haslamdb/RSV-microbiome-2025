@@ -1,5 +1,5 @@
 === Sylph Microbial Profiling Analysis Summary ===
-Analysis completed on 2025-03-29 23:37
+Analysis completed on 2025-03-30 08:56
 
 Dataset summary:
 - Raw abundance data: 192 taxa, 217 samples
@@ -12,9 +12,9 @@ Alpha diversity results:
 - Mean observed_otus: 3.295 (SD: 1.835)
 
 Beta diversity results (PERMANOVA):
-- Timing: p-value = 0.003 (significant)
+- Timing: p-value = 0.007 (significant)
 - Severity: p-value = 0.001 (significant)
-- Symptoms: p-value = 0.008 (significant)
+- Symptoms: p-value = 0.012 (significant)
 
 Differential abundance results:
 - Timing: 3 significantly different taxa (adj. p < 0.1)
