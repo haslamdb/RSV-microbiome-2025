@@ -30,11 +30,11 @@ from statsmodels.stats.multitest import multipletests
 project_root = Path(__file__).resolve().parents[1]
 sys.path.append(str(project_root))
 
-# Add tools/sylph_tools directory to Python path
-tools_dir = project_root / 'tools' / 'sylph_tools'
+# Add tools directory to Python path (NOT tools/sylph_tools)
+tools_dir = project_root / 'tools'
 sys.path.append(str(tools_dir))
 
-# Try to import from sylph_tools if available
+# Now the import should work
 try:
     from sylph_tools import (
         load_metadata,
@@ -46,7 +46,7 @@ except ImportError:
     tools_available = False
     print("Warning: sylph_tools module not available. Using built-in functions.")
 
-
+    
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Analyze longitudinal Sylph data')
