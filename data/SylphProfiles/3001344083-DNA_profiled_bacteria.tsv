@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001344083-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/001/457/655/GCF_001457655.1_genomic.fna.gz	100.0000	100.0000	98.96	1.335	98.84-99.03	1.335	1.27-1.42	2	1.982	4248/7983	97.99	0	NZ_LN831035.1 Haemophilus influenzae strain NCTC8143 chromosome 1, complete sequence

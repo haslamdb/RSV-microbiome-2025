@@ -1,0 +1,3 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001093757-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/003/030/305/GCF_003030305.1_genomic.fna.gz	50.5984	50.7586	99.84	0.054	98.31-101.28	0.054	0.03-0.09	1	1.030	531/10561	90.80	0	NZ_CP023676.1 Cutibacterium acnes strain ATCC 6919 chromosome, complete genome
+trimmed_read1_3001093757-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/024/205/705/GCF_024205705.1_genomic.fna.gz	49.4016	49.2414	96.21	0.053	93.72-97.57	0.053	0.04-0.12	1	1.026	155/9958	87.43	0	NZ_CP073115.1 Neisseria subflava strain TT0077 chromosome, complete genome

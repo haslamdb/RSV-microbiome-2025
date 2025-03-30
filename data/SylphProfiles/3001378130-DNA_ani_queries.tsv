@@ -1,0 +1,3 @@
+Sample_file	Genome_file	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	Contig_name
+trimmed_read1_3001378130-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/003/030/305/GCF_003030305.1_genomic.fna.gz	94.36	0.130	92.98-96.00	0.130	0.07-0.21	1	1.061	213/10561	88.17	NZ_CP023676.1 Cutibacterium acnes strain ATCC 6919 chromosome, complete genome
+trimmed_read1_3001378130-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCA/016/839/165/GCA_016839165.1_genomic.fna.gz	92.63	0.045	90.02-93.39	0.045	0.04-0.11	1	1.051	137/33139	83.77	CP069300.1 Bradyrhizobium sp. PSBB068 chromosome, complete genome

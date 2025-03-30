@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001172810-DNA.fastq.gz	refseq/fungi/GCF_001661405.1/GCF_001661405.1_Cybja1_genomic.fna.gz	100.0000	100.0000	95.61	0.028	93.55-97.36	0.028	0.02-0.05	1	1.014	365/53510	85.14	0	NW_017963652.1 Cyberlindnera jadinii NRRL Y-1542 unplaced genomic scaffold CYBJAscaffold_1, whole genome shotgun sequence

@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001180268-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/001/027/105/GCF_001027105.1_genomic.fna.gz	100.0000	100.0000	99.15	0.432	98.94-99.40	0.432	0.40-0.46	1	1.242	3200/11892	95.85	0	NZ_CP011526.1 Staphylococcus aureus strain DSM 20231 chromosome, complete genome

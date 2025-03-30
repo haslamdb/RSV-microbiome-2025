@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001046450-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/001/457/635/GCF_001457635.1_genomic.fna.gz	100.0000	100.0000	98.85	0.167	98.22-99.37	0.167	0.14-0.21	1	1.085	924/8578	93.06	0	NZ_LN831051.1 Streptococcus pneumoniae strain NCTC7465 chromosome 1, complete sequence

@@ -1,0 +1,3 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001361919-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/001/457/655/GCF_001457655.1_genomic.fna.gz	84.1912	82.6682	99.48	8.349	NA-NA	HIGH	NA-NA	8	8.349	6786/7983	99.48	0	NZ_LN831035.1 Haemophilus influenzae strain NCTC8143 chromosome 1, complete sequence
+trimmed_read1_3001361919-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/001/457/635/GCF_001457635.1_genomic.fna.gz	15.8088	17.3318	98.91	1.568	98.81-98.99	1.568	1.50-1.67	2	2.067	4841/8578	98.17	0	NZ_LN831051.1 Streptococcus pneumoniae strain NCTC7465 chromosome 1, complete sequence

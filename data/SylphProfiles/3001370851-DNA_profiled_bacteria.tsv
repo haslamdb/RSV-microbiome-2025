@@ -1,0 +1,3 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001370851-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/003/030/305/GCF_003030305.1_genomic.fna.gz	66.7416	60.0892	96.33	0.085	94.79-97.97	0.085	0.05-0.14	1	1.041	270/10561	88.85	0	NZ_CP023676.1 Cutibacterium acnes strain ATCC 6919 chromosome, complete genome
+trimmed_read1_3001370851-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/025/151/535/GCF_025151535.1_genomic.fna.gz	33.2584	39.9108	96.66	0.042	94.09-97.62	0.042	0.03-0.10	1	1.031	194/13404	87.23	0	NZ_CP102288.1 Segatella copri DSM 18205 chromosome, complete genome

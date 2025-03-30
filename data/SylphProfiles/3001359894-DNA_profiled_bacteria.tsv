@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001359894-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/002/014/765/GCF_002014765.1_genomic.fna.gz	100.0000	100.0000	99.80	9.993	NA-NA	HIGH	NA-NA	10	9.993	8378/8926	99.80	0	NZ_MUYT01000001.1 Moraxella lincolnii strain CCUG 9405 CCUG9405T_R1__paired__trimmed__paired__contig_1, whole genome shotgun sequence

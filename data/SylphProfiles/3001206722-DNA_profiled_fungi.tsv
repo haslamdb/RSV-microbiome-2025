@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001206722-DNA.fastq.gz	refseq/fungi/GCF_000182965.3/GCF_000182965.3_ASM18296v3_genomic.fna.gz	100.0000	100.0000	95.76	0.085	94.95-96.31	0.085	0.07-0.11	1	1.106	1297/60625	88.34	0	NC_032089.1 Candida albicans SC5314 chromosome 1, complete sequence

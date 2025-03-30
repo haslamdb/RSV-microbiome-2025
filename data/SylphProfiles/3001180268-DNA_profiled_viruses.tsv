@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001180268-DNA.fastq.gz	imgvr_reps.fna	100.0000	100.0000	100.00	0.170	98.45-102.76	0.170	0.11-0.40	1	1.115	52/217	95.50	0	IMGVR_UViG_2531839616_000007|2531839616|2531922863|81517-125294

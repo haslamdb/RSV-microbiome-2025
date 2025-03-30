@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001379500-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/001/679/005/GCF_001679005.1_genomic.fna.gz	100.0000	100.0000	95.27	0.137	94.08-96.60	0.137	0.09-0.20	1	1.071	281/9834	89.16	0	NZ_LXTW01000001.1 Moraxella nonliquefaciens strain CCUG 348 contig_1, whole genome shotgun sequence

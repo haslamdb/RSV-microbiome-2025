@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001332903-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCA/016/839/165/GCA_016839165.1_genomic.fna.gz	100.0000	100.0000	96.66	0.167	96.15-97.09	0.167	0.14-0.20	1	1.088	1783/33139	91.00	0	CP069300.1 Bradyrhizobium sp. PSBB068 chromosome, complete genome

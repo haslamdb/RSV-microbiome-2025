@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Taxonomic_abundance	Sequence_abundance	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	kmers_reassigned	Contig_name
+trimmed_read1_3001206725-DNA.fastq.gz	refseq/fungi/GCF_003290485.1/GCF_003290485.1_ASM329048v1_genomic.fna.gz	100.0000	100.0000	97.39	0.114	96.74-97.87	0.114	0.09-0.14	1	1.066	1504/31580	90.65	0	NC_040193.1 Malassezia restricta chromosome I, complete sequence

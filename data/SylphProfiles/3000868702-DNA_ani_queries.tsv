@@ -1,0 +1,2 @@
+Sample_file	Genome_file	Adjusted_ANI	Eff_cov	ANI_5-95_percentile	Eff_lambda	Lambda_5-95_percentile	Median_cov	Mean_cov_geq1	Containment_ind	Naive_ANI	Contig_name
+trimmed_read1_3000868702-DNA.fastq.gz	gtdb_genomes_reps_r220/database/GCF/003/030/305/GCF_003030305.1_genomic.fna.gz	91.86	0.186	90.64-93.88	0.186	0.09-0.31	1	1.085	129/10561	86.75	NZ_CP023676.1 Cutibacterium acnes strain ATCC 6919 chromosome, complete genome
