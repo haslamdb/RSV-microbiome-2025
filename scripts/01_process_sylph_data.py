@@ -1223,7 +1223,7 @@ def main():
                 try:
                     # Use existing function if available
                     if tools_available:
-                        fig = plot_alpha_diversity_boxplot(alpha_div, metadata_df, group_var, metric=metric)
+                        fig = plot_alpha_diversity_boxplot(alpha_div, metadata_df, group_var)
                     else:
                         # Create our own boxplot
                         fig, ax = plt.subplots(figsize=(10, 6))
