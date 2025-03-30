@@ -6,6 +6,26 @@ import pandas as pd
 import numpy as np
 import os
 
+# Add project root to Python path
+project_root = Path(__file__).resolve().parents[1]
+sys.path.append(str(project_root))
+
+# Add tools/sylph_tools directory to Python path
+tools_dir = project_root / 'tools' / 'sylph_tools'
+sys.path.append(str(tools_dir))
+
+# Try to import from sylph_tools if available
+try:
+    from sylph_tools import (
+        load_metadata,
+        calculate_alpha_diversity,
+        filter_low_abundance
+    )
+    tools_available = True
+except ImportError:
+    tools_available = False
+    print("Warning: sylph_tools module not available. Using built-in functions.")
+
 
 def load_metadata(filepath, sample_id_column='SampleID'):
     """
