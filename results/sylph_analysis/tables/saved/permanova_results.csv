@@ -1,4 +1,4 @@
 ,test-statistic,p-value,sample size,note
-Timing,2.185394742464933,0.003,217,Successful test
-Severity,2.195016032451987,0.001,217,Successful test
-Symptoms,2.052230983062676,0.008,217,Successful test
+Timing,2.185394742464914,0.007,217,Successful test
+Severity,2.1950160324519676,0.001,217,Successful test
+Symptoms,2.0522309830626186,0.012,217,Successful test
