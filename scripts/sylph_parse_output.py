@@ -256,7 +256,9 @@ def combine_sylph_samples(files, sample_ids=None, abundance_type='Taxonomic_abun
             continue
     
     if not dfs:
-        raise ValueError("No valid data frames to combine. Check file formats and error messages above.")
+        # Instead of raising an error, return an empty DataFrame with a warning
+        print("\nWarning: No valid data frames to combine. Returning empty DataFrame.")
+        return pd.DataFrame()
     
     print(f"\nSuccessfully processed {len(dfs)}/{len(files)} files")
     
@@ -267,6 +269,7 @@ def combine_sylph_samples(files, sample_ids=None, abundance_type='Taxonomic_abun
     combined_df = combined_df.fillna(0)
     
     return combined_df
+
 
 def load_metadata(metadata_file, sample_id_column='SampleID'):
     """
@@ -332,7 +335,7 @@ def process_sylph_profile_type(input_dir, output_dir, profile_type, pattern, arg
     )
     
     if combined_df.empty:
-        print(f"No data found in {profile_type} profile files.")
+        print(f"No usable data found in {profile_type} profile files.")
         return None
     
     # Save combined table
@@ -342,6 +345,7 @@ def process_sylph_profile_type(input_dir, output_dir, profile_type, pattern, arg
     print(f"Table contains {len(combined_df.index)} taxa across {len(combined_df.columns)} samples")
     
     return combined_df
+
 
 def main():
     """Main function to process Sylph output files."""
