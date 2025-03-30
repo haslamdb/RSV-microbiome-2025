@@ -28,6 +28,10 @@ import jinja2
 project_root = Path(__file__).resolve().parents[1]
 sys.path.append(str(project_root))
 
+# Add tools directory to Python path
+tools_dir = project_root / 'tools'
+sys.path.append(str(tools_dir))
+
 # Import functions from metaphlan_tools
 from metaphlan_tools import (
     load_metadata,
@@ -217,7 +221,7 @@ def generate_html_report(summary_stats, results, config, output_dir):
     {% endif %}
     
     <div class="figure">
-        <img src="../figures/alpha_diversity_{{ config.metadata.group_variables[0] }}.png" alt="Alpha Diversity">
+        <img src="../figures/alpha_diversity_{{ config.metadata.group_variables[0] }}.pdf" alt="Alpha Diversity">
         <p class="figure-caption">Alpha diversity metrics across {{ config.metadata.group_variables[0] }} groups.</p>
     </div>
     
@@ -227,7 +231,7 @@ def generate_html_report(summary_stats, results, config, output_dir):
     {% endif %}
     
     <div class="figure">
-        <img src="../figures/differential_species_heatmap.png" alt="Heatmap of differential species">
+        <img src="../figures/differential_species_heatmap.pdf" alt="Heatmap of differential species">
         <p class="figure-caption">Heatmap showing relative abundance of differentially abundant species.</p>
     </div>
     
@@ -237,7 +241,7 @@ def generate_html_report(summary_stats, results, config, output_dir):
     {% endif %}
     
     <div class="figure">
-        <img src="../figures/top_species_stacked_by_{{ config.metadata.time_variable }}.png" alt="Species over time">
+        <img src="../figures/top_species_stacked_by_{{ config.metadata.time_variable }}.pdf" alt="Species over time">
         <p class="figure-caption">Changes in top species abundance over time.</p>
     </div>
     
@@ -391,7 +395,7 @@ def main():
     print("\nGenerating species correlation network...")
     try:
         fig = plot_correlation_network(filtered_abundance_df, threshold=0.6, min_prevalence=0.3)
-        network_file = figures_dir / 'correlation_network.png'
+        network_file = figures_dir / 'correlation_network.pdf'
         fig.savefig(network_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
         plt.close(fig)
         print(f"Correlation network saved to {network_file}")
@@ -419,7 +423,7 @@ def main():
             figsize=(12, 10)
         )
         
-        heatmap_file = figures_dir / 'global_abundance_heatmap.png'
+        heatmap_file = figures_dir / 'global_abundance_heatmap.pdf'
         fig.savefig(heatmap_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
         plt.close(fig)
         print(f"Global heatmap saved to {heatmap_file}")
@@ -436,7 +440,7 @@ def main():
                     other_category=True
                 )
                 
-                bar_file = figures_dir / f'composition_by_{var}.png'
+                bar_file = figures_dir / f'composition_by_{var}.pdf'
                 fig.savefig(bar_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
                 plt.close(fig)
                 print(f"Composition plot saved to {bar_file}")
