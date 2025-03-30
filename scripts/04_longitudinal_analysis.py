@@ -11,7 +11,7 @@ This script:
 6. Examines time-dependent effects of clinical variables
 
 Usage:
-    python scripts/04_analyze_longitudinal_changes.py [--config CONFIG_FILE]
+    python scripts/04_longitudinal_analysis.py [--config CONFIG_FILE]
 """
 
 import os
@@ -222,6 +222,11 @@ def main():
     
     # Plot alpha diversity changes over time
     for metric in alpha_metrics:
+        # Skip metrics that aren't in the alpha_df
+        if metric not in alpha_df.columns:
+            print(f"Warning: Metric '{metric}' not found in alpha diversity results. Skipping.")
+            continue
+            
         # Create summary boxplot
         fig, ax = plt.subplots(figsize=(10, 6))
         
