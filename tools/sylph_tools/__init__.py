@@ -1,83 +1,42 @@
 """
-Sylph Tools package for microbiome data analysis.
-
-This package provides functions for processing and analyzing Sylph profiling data,
-including diversity metrics, visualization, differential abundance testing, and more.
-
-Main modules:
-- sylph_diversity: Functions for calculating alpha and beta diversity metrics
-- sylph_stats: Statistical analysis functions
-- sylph_utils: Utility functions for data loading and preprocessing
-- sylph_viz: Visualization functions
-- sylph_tools: Main entry point exposing all key functions
-
-Usage:
-    import sylph_tools
-    from sylph_tools import load_metadata, calculate_alpha_diversity, ...
+Functions for calculating alpha and beta diversity metrics for Sylph microbiome data.
 """
 
-# Import core modules
-from .sylph_diversity import (
-    calculate_alpha_diversity,
-    calculate_beta_diversity,
-    compare_alpha_diversity
-)
+import pandas as pd
+import numpy as np
+from scipy import stats
+from skbio.diversity import alpha_diversity, beta_diversity
+from skbio.stats.distance import DistanceMatrix
 
-from .sylph_stats import (
-    perform_permanova,
-    differential_abundance_analysis,
-    plot_abundance_boxplot,
-    plot_beta_diversity_ordination
-)
 
-from .sylph_viz import (
-    plot_alpha_diversity_boxplot,
-    plot_ordination,
-    plot_stacked_bar,
-    plot_correlation_network,
-    plot_relative_abundance_heatmap
-)
-
-from .sylph_utils import (
-    load_metadata,
-    preprocess_abundance_data,
-    filter_low_abundance,
-    create_abundance_summary,
-    export_biom_format,
-    add_taxonomy_metadata
-)
-
-# Re-export from sylph_tools for convenience and consistency
-from .sylph_tools import *
-
-# Define package version
-__version__ = '0.1.0'
-
-# Define all exportable names
-__all__ = [
-    # From sylph_diversity
-    'calculate_alpha_diversity',
-    'calculate_beta_diversity',
-    'compare_alpha_diversity',
+def calculate_alpha_diversity(abundance_df, metrics=None):
+    """
+    Calculate alpha diversity metrics for each sample.
     
-    # From sylph_stats
-    'perform_permanova',
-    'differential_abundance_analysis',
-    'plot_abundance_boxplot',
-    'plot_beta_diversity_ordination',
+    Parameters:
+    -----------
+    abundance_df : pandas.DataFrame
+        Taxa abundance DataFrame with taxa as index, samples as columns
+    metrics : list, optional
+        List of diversity metrics to calculate
+        Default: ['shannon', 'simpson', 'observed_otus']
+        
+    Returns:
+    --------
+    pandas.DataFrame
+        DataFrame with alpha diversity metrics for each sample
+    """
+    if metrics is None:
+        metrics = ['shannon', 'simpson', 'observed_otus']
     
-    # From sylph_viz
-    'plot_alpha_diversity_boxplot',
-    'plot_ordination',
-    'plot_stacked_bar',
-    'plot_correlation_network',
-    'plot_relative_abundance_heatmap',
+    # Initialize results DataFrame
+    alpha_div = pd.DataFrame(index=abundance_df.columns)
     
-    # From sylph_utils
-    'load_metadata',
-    'preprocess_abundance_data',
-    'filter_low_abundance',
-    'create_abundance_summary',
-    'export_biom_format',
-    'add_taxonomy_metadata'
-]
+    # Convert to relative abundance for proper diversity calculations
+    rel_abundance = abundance_df.copy()
+    sample_sums = rel_abundance.sum()
+    for col in rel_abundance.columns:
+        if sample_sums[col] > 0:
+            rel_abundance[col] = rel_abundance[col] / sample_sums[col]
+    
+    # Calculate each reque
