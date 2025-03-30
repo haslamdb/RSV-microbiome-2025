@@ -37,264 +37,7 @@ sys.path.append(str(tools_dir))
 # Try to import from sylph_tools if available
 try:
     from sylph_tools import (
-        print(f"  {metric} diversity time plot saved to {fig_file}")
-    
-    # Identify taxa with significant temporal patterns
-    print("\nIdentifying taxa with significant temporal patterns...")
-    top_n = config['longitudinal']['analyze_top_n_species']
-    temporal_taxa, stats_results = identify_temporal_patterns(
-        filtered_abundance, metadata_df, time_var, subject_var, top_n
-    )
-    
-    # Save statistical results
-    stats_df = pd.DataFrame.from_dict(stats_results, orient='index')
-    stats_file = tables_dir / 'temporal_pattern_stats.csv'
-    stats_df.to_csv(stats_file)
-    print(f"Temporal pattern statistics saved to {stats_file}")
-    
-    # If no taxa with significant temporal patterns were found, use top abundant taxa
-    if not temporal_taxa:
-        print("No taxa with significant temporal patterns found.")
-        print("Using top taxa by abundance instead.")
-        mean_abundance = filtered_abundance.mean(axis=1)
-        temporal_taxa = mean_abundance.nlargest(top_n).index.tolist()
-    else:
-        print(f"Found {len(temporal_taxa)} taxa with significant temporal patterns:")
-        for taxon in temporal_taxa:
-            p_value = stats_results[taxon]['p-value']
-            print(f"  - {taxon}: p-value = {p_value:.4f}")
-    
-    # Create longitudinal plots for each taxon
-    print(f"\nCreating longitudinal plots for {len(temporal_taxa)} taxa...")
-    for taxon in temporal_taxa:
-        print(f"  Plotting {taxon}...")
-        
-        # Plot without grouping
-        try:
-            fig = plot_longitudinal_changes(
-                filtered_abundance, 
-                metadata_df, 
-                taxon, 
-                time_var, 
-                subject_var
-            )
-            
-            # Add p-value if available
-            if taxon in stats_results:
-                p_value = stats_results[taxon]['p-value']
-                plt.annotate(f"p-value = {p_value:.4f}", xy=(0.02, 0.98), xycoords='axes fraction',
-                           ha='left', va='top', fontsize=10,
-                           bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.7))
-            
-            # Save figure
-            safe_taxon = taxon.replace(' ', '_').replace('/', '_').replace(':', '_')
-            fig_file = figures_dir / f"taxon_{safe_taxon}_over_time.pdf"
-            fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
-            plt.close(fig)
-            print(f"    Plot saved to {fig_file}")
-        except Exception as e:
-            print(f"    Error plotting {taxon}: {str(e)}")
-        
-        # Plot with grouping if available
-        for group_var in config['metadata']['group_variables']:
-            if group_var in metadata_df.columns:
-                try:
-                    fig = plot_longitudinal_changes(
-                        filtered_abundance, 
-                        metadata_df, 
-                        taxon, 
-                        time_var, 
-                        subject_var, 
-                        group_var
-                    )
-                    
-                    # Save figure
-                    safe_taxon = taxon.replace(' ', '_').replace('/', '_').replace(':', '_')
-                    fig_file = figures_dir / f"taxon_{safe_taxon}_over_time_by_{group_var}.pdf"
-                    fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
-                    plt.close(fig)
-                    print(f"    Plot with {group_var} saved to {fig_file}")
-                except Exception as e:
-                    print(f"    Error plotting {taxon} with {group_var}: {str(e)}")
-    
-    # Analyze consecutive time points if more than one time point exists
-    time_points = sorted(metadata_df[time_var].unique())
-    
-    if len(time_points) >= 2:
-        print("\nAnalyzing changes between consecutive time points...")
-        
-        for i in range(len(time_points) - 1):
-            time1 = time_points[i]
-            time2 = time_points[i + 1]
-            
-            print(f"\nComparing {time1} vs {time2}...")
-            
-            # Perform paired time point analysis
-            paired_results = analyze_paired_timepoints(
-                filtered_abundance,
-                metadata_df,
-                time_var,
-                subject_var,
-                time1,
-                time2
-            )
-            
-            if not paired_results.empty:
-                # Save results
-                paired_file = tables_dir / f"paired_changes_{time1}_vs_{time2}.csv"
-                paired_results.to_csv(paired_file)
-                print(f"Paired analysis results saved to {paired_file}")
-                
-                # Print top significant results
-                alpha = 0.05
-                sig_taxa = paired_results[paired_results['Adjusted P-value'] < alpha]
-                print(f"Found {len(sig_taxa)} significantly changing taxa (adj. p < {alpha})")
-                
-                if not sig_taxa.empty:
-                    # Create paired plots for top significant taxa
-                    for _, row in sig_taxa.head(5).iterrows():
-                        taxon = row['Taxon']
-                        
-                        try:
-                            # Create paired plot
-                            safe_taxon = taxon.replace(' ', '_').replace('/', '_').replace(':', '_')
-                            plot_file = paired_dir / f"paired_{safe_taxon}_{time1}_vs_{time2}.pdf"
-                            
-                            fig = plot_paired_changes(
-                                filtered_abundance,
-                                metadata_df,
-                                taxon,
-                                time_var,
-                                subject_var,
-                                time1,
-                                time2,
-                                output_file=plot_file
-                            )
-                            
-                            plt.close(fig)
-                            print(f"  Paired plot for {taxon} saved to {plot_file}")
-                        except Exception as e:
-                            print(f"  Error creating paired plot for {taxon}: {str(e)}")
-    
-    # Create visualization showing abundance changes over time for multiple taxa
-    print("\nCreating combined visualization of top taxa changes...")
-    try:
-        # Get data for top taxa
-        taxa_data = filtered_abundance.loc[temporal_taxa]
-        
-        # Calculate mean abundance at each time point
-        time_points = sorted(metadata_df[time_var].unique())
-        mean_by_time = {time_point: [] for time_point in time_points}
-        
-        for taxon in temporal_taxa:
-            taxon_series = filtered_abundance.loc[taxon]
-            for time_point in time_points:
-                # Get samples for this time point
-                time_samples = metadata_df[metadata_df[time_var] == time_point].index
-                time_samples = [s for s in time_samples if s in taxon_series.index]
-                
-                # Calculate mean for this taxon at this time point
-                if time_samples:
-                    mean = taxon_series[time_samples].mean()
-                    mean_by_time[time_point].append(mean)
-                else:
-                    mean_by_time[time_point].append(0)
-        
-        # Create a stacked bar chart
-        fig, ax = plt.subplots(figsize=(10, 8))
-        
-        bottom = np.zeros(len(time_points))
-        
-        for i, taxon in enumerate(temporal_taxa):
-            values = [mean_by_time[t][i] for t in time_points]
-            ax.bar(time_points, values, bottom=bottom, label=taxon)
-            bottom += values
-        
-        ax.set_title(f"Mean Abundance of Top Taxa Across {time_var}")
-        ax.set_xlabel(time_var)
-        ax.set_ylabel("Mean Relative Abundance (%)")
-        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-        
-        # Save figure
-        fig_file = figures_dir / f"top_taxa_stacked_by_{time_var}.pdf"
-        fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
-        plt.close(fig)
-        print(f"Combined visualization saved to {fig_file}")
-    except Exception as e:
-        print(f"Error creating combined visualization: {str(e)}")
-    
-    # Create a summary of results
-    print("\nCreating summary of results...")
-    summary_file = output_dir / 'longitudinal_summary.txt'
-    
-    with open(summary_file, 'w') as f:
-        f.write("=== Sylph Longitudinal Analysis Summary ===\n")
-        f.write(f"Analysis completed on {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}\n\n")
-        
-        f.write("Dataset summary:\n")
-        f.write(f"- Abundance data: {filtered_abundance.shape[0]} taxa, {filtered_abundance.shape[1]} samples\n")
-        f.write(f"- Time points: {', '.join(str(t) for t in time_points)}\n")
-        f.write(f"- Subjects: {metadata_df[subject_var].nunique()}\n\n")
-        
-        f.write("Alpha diversity changes over time:\n")
-        for metric in diversity_figures.keys():
-            try:
-                # Calculate mean for each time point
-                means = {}
-                for time_point in time_points:
-                    time_samples = metadata_df[metadata_df[time_var] == time_point].index
-                    time_samples = list(set(time_samples).intersection(set(alpha_div.index)))
-                    if time_samples:
-                        means[time_point] = alpha_div.loc[time_samples, metric].mean()
-                
-                f.write(f"- {metric}: ")
-                for time_point, mean in means.items():
-                    f.write(f"{time_point}={mean:.3f} ")
-                f.write("\n")
-            except Exception as e:
-                f.write(f"- {metric}: Error calculating means - {str(e)}\n")
-        f.write("\n")
-        
-        f.write("Taxa with significant temporal patterns:\n")
-        for i, taxon in enumerate(temporal_taxa):
-            if taxon in stats_results:
-                p_value = stats_results[taxon]['p-value']
-                f.write(f"{i+1}. {taxon}: p-value = {p_value:.4f}\n")
-            else:
-                f.write(f"{i+1}. {taxon}\n")
-        f.write("\n")
-        
-        if len(time_points) >= 2:
-            f.write("Significant changes between consecutive time points:\n")
-            for i in range(len(time_points) - 1):
-                time1 = time_points[i]
-                time2 = time_points[i + 1]
-                
-                paired_file = tables_dir / f"paired_changes_{time1}_vs_{time2}.csv"
-                if os.path.exists(paired_file):
-                    paired_results = pd.read_csv(paired_file)
-                    sig_taxa = paired_results[paired_results['Adjusted P-value'] < 0.05]
-                    
-                    f.write(f"\n{time1} vs {time2}: {len(sig_taxa)} significant changes\n")
-                    
-                    if not sig_taxa.empty:
-                        for j, (_, row) in enumerate(sig_taxa.head(5).iterrows()):
-                            taxon = row['Taxon']
-                            adj_p = row['Adjusted P-value']
-                            fold_change = row['Fold Change']
-                            direction = "increase" if row['Mean Change'] > 0 else "decrease"
-                            
-                            f.write(f"  {j+1}. {taxon}: {direction}, adj. p-value = {adj_p:.4e}, fold change = {fold_change:.2f}\n")
-    
-    print(f"Summary saved to {summary_file}")
-    print("\nLongitudinal analysis complete!")
-
-
-if __name__ == "__main__":
-    import seaborn as sns
-    sns.set(style="whitegrid")
-    
-    main()load_metadata,
+        load_metadata,
         calculate_alpha_diversity,
         filter_low_abundance
     )
@@ -1040,4 +783,254 @@ def main():
         fig_file = figures_dir / f'alpha_{metric}_over_time.pdf'
         fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
         plt.close(fig)
+        print(f"  {metric} diversity time plot saved to {fig_file}")
+    
+    # Identify taxa with significant temporal patterns
+    print("\nIdentifying taxa with significant temporal patterns...")
+    top_n = config['longitudinal']['analyze_top_n_species']
+    temporal_taxa, stats_results = identify_temporal_patterns(
+        filtered_abundance, metadata_df, time_var, subject_var, top_n
+    )
+    
+    # Save statistical results
+    stats_df = pd.DataFrame.from_dict(stats_results, orient='index')
+    stats_file = tables_dir / 'temporal_pattern_stats.csv'
+    stats_df.to_csv(stats_file)
+    print(f"Temporal pattern statistics saved to {stats_file}")
+    
+    # If no taxa with significant temporal patterns were found, use top abundant taxa
+    if not temporal_taxa:
+        print("No taxa with significant temporal patterns found.")
+        print("Using top taxa by abundance instead.")
+        mean_abundance = filtered_abundance.mean(axis=1)
+        temporal_taxa = mean_abundance.nlargest(top_n).index.tolist()
+    else:
+        print(f"Found {len(temporal_taxa)} taxa with significant temporal patterns:")
+        for taxon in temporal_taxa:
+            p_value = stats_results[taxon]['p-value']
+            print(f"  - {taxon}: p-value = {p_value:.4f}")
+    
+    # Create longitudinal plots for each taxon
+    print(f"\nCreating longitudinal plots for {len(temporal_taxa)} taxa...")
+    for taxon in temporal_taxa:
+        print(f"  Plotting {taxon}...")
         
+        # Plot without grouping
+        try:
+            fig = plot_longitudinal_changes(
+                filtered_abundance, 
+                metadata_df, 
+                taxon, 
+                time_var, 
+                subject_var
+            )
+            
+            # Add p-value if available
+            if taxon in stats_results:
+                p_value = stats_results[taxon]['p-value']
+                plt.annotate(f"p-value = {p_value:.4f}", xy=(0.02, 0.98), xycoords='axes fraction',
+                           ha='left', va='top', fontsize=10,
+                           bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.7))
+            
+            # Save figure
+            safe_taxon = taxon.replace(' ', '_').replace('/', '_').replace(':', '_')
+            fig_file = figures_dir / f"taxon_{safe_taxon}_over_time.pdf"
+            fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
+            plt.close(fig)
+            print(f"    Plot saved to {fig_file}")
+        except Exception as e:
+            print(f"    Error plotting {taxon}: {str(e)}")
+        
+        # Plot with grouping if available
+        for group_var in config['metadata']['group_variables']:
+            if group_var in metadata_df.columns:
+                try:
+                    fig = plot_longitudinal_changes(
+                        filtered_abundance, 
+                        metadata_df, 
+                        taxon, 
+                        time_var, 
+                        subject_var, 
+                        group_var
+                    )
+                    
+                    # Save figure
+                    safe_taxon = taxon.replace(' ', '_').replace('/', '_').replace(':', '_')
+                    fig_file = figures_dir / f"taxon_{safe_taxon}_over_time_by_{group_var}.pdf"
+                    fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
+                    plt.close(fig)
+                    print(f"    Plot with {group_var} saved to {fig_file}")
+                except Exception as e:
+                    print(f"    Error plotting {taxon} with {group_var}: {str(e)}")
+    
+    # Analyze consecutive time points if more than one time point exists
+    time_points = sorted(metadata_df[time_var].unique())
+    
+    if len(time_points) >= 2:
+        print("\nAnalyzing changes between consecutive time points...")
+        
+        for i in range(len(time_points) - 1):
+            time1 = time_points[i]
+            time2 = time_points[i + 1]
+            
+            print(f"\nComparing {time1} vs {time2}...")
+            
+            # Perform paired time point analysis
+            paired_results = analyze_paired_timepoints(
+                filtered_abundance,
+                metadata_df,
+                time_var,
+                subject_var,
+                time1,
+                time2
+            )
+            
+            if not paired_results.empty:
+                # Save results
+                paired_file = tables_dir / f"paired_changes_{time1}_vs_{time2}.csv"
+                paired_results.to_csv(paired_file)
+                print(f"Paired analysis results saved to {paired_file}")
+                
+                # Print top significant results
+                alpha = 0.05
+                sig_taxa = paired_results[paired_results['Adjusted P-value'] < alpha]
+                print(f"Found {len(sig_taxa)} significantly changing taxa (adj. p < {alpha})")
+                
+                if not sig_taxa.empty:
+                    # Create paired plots for top significant taxa
+                    for _, row in sig_taxa.head(5).iterrows():
+                        taxon = row['Taxon']
+                        
+                        try:
+                            # Create paired plot
+                            safe_taxon = taxon.replace(' ', '_').replace('/', '_').replace(':', '_')
+                            plot_file = paired_dir / f"paired_{safe_taxon}_{time1}_vs_{time2}.pdf"
+                            
+                            fig = plot_paired_changes(
+                                filtered_abundance,
+                                metadata_df,
+                                taxon,
+                                time_var,
+                                subject_var,
+                                time1,
+                                time2,
+                                output_file=plot_file
+                            )
+                            
+                            plt.close(fig)
+                            print(f"  Paired plot for {taxon} saved to {plot_file}")
+                        except Exception as e:
+                            print(f"  Error creating paired plot for {taxon}: {str(e)}")
+    
+    # Create visualization showing abundance changes over time for multiple taxa
+    print("\nCreating combined visualization of top taxa changes...")
+    try:
+        # Get data for top taxa
+        taxa_data = filtered_abundance.loc[temporal_taxa]
+        
+        # Calculate mean abundance at each time point
+        time_points = sorted(metadata_df[time_var].unique())
+        mean_by_time = {time_point: [] for time_point in time_points}
+        
+        for taxon in temporal_taxa:
+            taxon_series = filtered_abundance.loc[taxon]
+            for time_point in time_points:
+                # Get samples for this time point
+                time_samples = metadata_df[metadata_df[time_var] == time_point].index
+                time_samples = [s for s in time_samples if s in taxon_series.index]
+                
+                # Calculate mean for this taxon at this time point
+                if time_samples:
+                    mean = taxon_series[time_samples].mean()
+                    mean_by_time[time_point].append(mean)
+                else:
+                    mean_by_time[time_point].append(0)
+        
+        # Create a stacked bar chart
+        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        bottom = np.zeros(len(time_points))
+        
+        for i, taxon in enumerate(temporal_taxa):
+            values = [mean_by_time[t][i] for t in time_points]
+            ax.bar(time_points, values, bottom=bottom, label=taxon)
+            bottom += values
+        
+        ax.set_title(f"Mean Abundance of Top Taxa Across {time_var}")
+        ax.set_xlabel(time_var)
+        ax.set_ylabel("Mean Relative Abundance (%)")
+        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        
+        # Save figure
+        fig_file = figures_dir / f"top_taxa_stacked_by_{time_var}.pdf"
+        fig.savefig(fig_file, dpi=config['visualization']['figure_dpi'], bbox_inches='tight')
+        plt.close(fig)
+        print(f"Combined visualization saved to {fig_file}")
+    except Exception as e:
+        print(f"Error creating combined visualization: {str(e)}")
+    
+    # Create a summary of results
+    print("\nCreating summary of results...")
+    summary_file = output_dir / 'longitudinal_summary.txt'
+    
+    with open(summary_file, 'w') as f:
+        f.write("=== Sylph Longitudinal Analysis Summary ===\n")
+        f.write(f"Analysis completed on {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}\n\n")
+        
+        f.write("Dataset summary:\n")
+        f.write(f"- Abundance data: {filtered_abundance.shape[0]} taxa, {filtered_abundance.shape[1]} samples\n")
+        f.write(f"- Time points: {', '.join(str(t) for t in time_points)}\n")
+        f.write(f"- Subjects: {metadata_df[subject_var].nunique()}\n\n")
+        
+        f.write("Alpha diversity changes over time:\n")
+        for metric in diversity_figures.keys():
+            try:
+                # Calculate mean for each time point
+                means = {}
+                for time_point in time_points:
+                    time_samples = metadata_df[metadata_df[time_var] == time_point].index
+                    time_samples = list(set(time_samples).intersection(set(alpha_div.index)))
+                    if time_samples:
+                        means[time_point] = alpha_div.loc[time_samples, metric].mean()
+                
+                f.write(f"- {metric}: ")
+                for time_point, mean in means.items():
+                    f.write(f"{time_point}={mean:.3f} ")
+                f.write("\n")
+            except Exception as e:
+                f.write(f"- {metric}: Error calculating means - {str(e)}\n")
+        f.write("\n")
+        
+        f.write("Taxa with significant temporal patterns:\n")
+        for i, taxon in enumerate(temporal_taxa):
+            if taxon in stats_results:
+                p_value = stats_results[taxon]['p-value']
+                f.write(f"{i+1}. {taxon}: p-value = {p_value:.4f}\n")
+            else:
+                f.write(f"{i+1}. {taxon}\n")
+        f.write("\n")
+        
+        if len(time_points) >= 2:
+            f.write("Significant changes between consecutive time points:\n")
+            for i in range(len(time_points) - 1):
+                time1 = time_points[i]
+                time2 = time_points[i + 1]
+                
+                paired_file = tables_dir / f"paired_changes_{time1}_vs_{time2}.csv"
+                if os.path.exists(paired_file):
+                    paired_results = pd.read_csv(paired_file)
+                    sig_taxa = paired_results[paired_results['Adjusted P-value'] < 0.05]
+                    
+                    f.write(f"\n{time1} vs {time2}: {len(sig_taxa)} significant changes\n")
+                    
+                    if not sig_taxa.empty:
+                        for j, (_, row) in enumerate(sig_taxa.head(5).iterrows()):
+                            taxon = row['Taxon']
+                            adj_p = row['Adjusted P-value']
+                            fold_change = row['Fold Change']
+                            direction = "increase" if row['Mean Change'] > 0 else "decrease"
+                            
+                            f.write(f"  {j+1}. {taxon}: {direction}, adj. p-value = {adj_p:.4e}, fold change = {fold_change:.2f}\n")
+    
+    print(f"Summary saved to {summary_file}")
+    print("\nLongitudinal analysis complete!")
