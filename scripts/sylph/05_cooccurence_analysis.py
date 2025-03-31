@@ -589,7 +589,7 @@ def plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, group_var, outpu
     # Get relevant metadata
     meta_subset = metadata_df.loc[common_samples, [time_var, group_var]].copy()
     
- # Define the correct order for time points (vertically from top to bottom)
+    # Define the correct order for time points (vertically from top to bottom)
     time_order = ['Prior', 'Acute', 'Post']
     
     # Create a DataFrame for plotting by merging abundance with metadata
@@ -634,7 +634,12 @@ def plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, group_var, outpu
             # If no data for this time point, add text to the axis
             axes[row_idx].text(0.5, 0.5, f'No data for {time_point}', 
                              ha='center', va='center', fontsize=12)
-            axes[row_idx].set_title(time_point)
+            # Remove title and add time label on right
+            axes[row_idx].set_title("")
+            # Create right y-axis for time label
+            ax_right = axes[row_idx].twinx()
+            ax_right.set_yticks([])
+            ax_right.set_ylabel(time_point, rotation=-90, labelpad=15, fontsize=12, fontweight='bold')
             continue
         
         # Create boxplot for this time point
@@ -660,25 +665,23 @@ def plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, group_var, outpu
                     print(f"Error calculating p-value: {str(e)}")
                     pass
         
-        # Set title and labels
-        axes[row_idx].set_title(f'{time_point}', fontsize=12, fontweight='bold')
+        # Remove title from the main axis
+        axes[row_idx].set_title("")
         
-        # Move y-label to the right side and rotate it -90 degrees
-        # Remove all y-labels first
-        axes[row_idx].set_ylabel('')
-        
-        # Add the time point as a rotated label on the right y-axis
-        # Create a twin axis for the right side
+        # Create a twin axis on the right side
         ax_right = axes[row_idx].twinx()
         
-        # Only set the ylabel for the right axis, rotated -90 degrees
-        if row_idx == 1:  # Middle subplot gets the "Abundance" label
-            ax_right.set_ylabel('Abundance', fontsize=12, rotation=-90, labelpad=15)
-        else:
-            ax_right.set_ylabel('')
-        
-        # Hide the tick labels on the right y-axis
+        # Hide the tick marks on the right y-axis
         ax_right.set_yticks([])
+        
+        # Add time point as right-side ylabel rotated -90 degrees
+        ax_right.set_ylabel(time_point, rotation=-90, labelpad=15, fontsize=12, fontweight='bold')
+        
+        # Set y-label for main axis (only for middle subplot)
+        if row_idx == 1:
+            axes[row_idx].set_ylabel('Abundance', fontsize=12)
+        else:
+            axes[row_idx].set_ylabel('')
             
         # Only add x-label to the bottom subplot
         if row_idx == len(time_order) - 1:

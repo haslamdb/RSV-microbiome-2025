@@ -1,3 +1,3 @@
 ,taxon,variable,test,statistic,p-value,mean_Mild,mean_Asymptomatic,mean_Severe,species_name,time_point
-0,Bacteria: Streptococcus pneumoniae,Symptoms,Kruskal-Wallis,1.8697392372666521,0.39263705475019095,4.48105306122449,8.082295833333333,4.742400000000001,Streptococcus pneumoniae,Prior
+0,Bacteria: Streptococcus pneumoniae,Symptoms,Kruskal-Wallis,1.8697392372666521,0.39263705475019095,4.4810530612244905,8.082295833333335,4.7424,Streptococcus pneumoniae,Prior
 1,Bacteria: Haemophilus influenzae,Symptoms,Kruskal-Wallis,1.531748946439021,0.464927186782918,5.565148979591837,6.9577583333333335,15.658719999999999,Haemophilus influenzae,Prior

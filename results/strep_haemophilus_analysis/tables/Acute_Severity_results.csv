@@ -1,3 +1,3 @@
-,taxon,variable,test,statistic,p-value,mean_1,mean_0,mean_2,mean_3,mean_4,species_name,time_point
-0,Bacteria: Streptococcus pneumoniae,Severity,Kruskal-Wallis,4.250577015321283,0.3731548096070245,29.293325000000003,12.71144761904762,10.702877777777779,20.2832625,25.0961,Streptococcus pneumoniae,Acute
-1,Bacteria: Haemophilus influenzae,Severity,Kruskal-Wallis,5.7318807202961,0.22008632873909126,1.263275,11.567519047619049,18.066477777777777,21.069287499999998,47.0534,Haemophilus influenzae,Acute
+,taxon,variable,test,statistic,p-value,mean_2,mean_1,mean_0,mean_3,mean_4,species_name,time_point
+0,Bacteria: Streptococcus pneumoniae,Severity,Kruskal-Wallis,4.250577015321283,0.3731548096070245,10.702877777777777,29.293325000000003,12.71144761904762,20.283262500000003,25.0961,Streptococcus pneumoniae,Acute
+1,Bacteria: Haemophilus influenzae,Severity,Kruskal-Wallis,5.7318807202961,0.22008632873909126,18.066477777777777,1.263275,11.567519047619049,21.069287499999998,47.0534,Haemophilus influenzae,Acute
