@@ -1,3 +1,4 @@
-,taxon,variable,test,statistic,p-value,mean_Post,mean_Prior,mean_Acute,species_name
-0,Bacteria: Streptococcus pneumoniae,Timing,Kruskal-Wallis,8.453269763778364,0.014601443549688033,6.093270967741935,5.553863855421687,16.602376712328766,Streptococcus pneumoniae
-1,Bacteria: Haemophilus influenzae,Timing,Kruskal-Wallis,2.013868588842616,0.3653372810447261,8.149087096774194,7.1839240963855415,13.240176712328767,Haemophilus influenzae
+,taxon,variable,test,statistic,p-value,mean_Post,mean_Acute,mean_Prior,species_name
+0,Bacteria: Streptococcus pneumoniae,Timing,Kruskal-Wallis,8.453269763778364,0.014601443549688033,6.093270967741936,16.602376712328766,5.553863855421686,Streptococcus pneumoniae
+1,Bacteria: Haemophilus influenzae,Timing,Kruskal-Wallis,2.013868588842616,0.3653372810447261,8.149087096774194,13.240176712328767,7.1839240963855415,Haemophilus influenzae
+2,Bacteria: Moraxella catarrhalis,Timing,Kruskal-Wallis,3.440920014821817,0.17898379509931525,5.871854838709678,5.471931506849315,3.050527710843374,Moraxella catarrhalis
