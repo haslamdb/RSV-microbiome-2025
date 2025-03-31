@@ -589,7 +589,7 @@ def plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, group_var, outpu
     # Get relevant metadata
     meta_subset = metadata_df.loc[common_samples, [time_var, group_var]].copy()
     
-    # Define the correct order for time points (vertically from top to bottom)
+ # Define the correct order for time points (vertically from top to bottom)
     time_order = ['Prior', 'Acute', 'Post']
     
     # Create a DataFrame for plotting by merging abundance with metadata
@@ -599,12 +599,22 @@ def plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, group_var, outpu
     plot_data[time_var] = [meta_subset.loc[sample, time_var] for sample in common_samples]
     plot_data[group_var] = [meta_subset.loc[sample, group_var] for sample in common_samples]
     
-    # Create a categorical variable with the correct order
+    # Create categorical variables with the correct order
     plot_data[time_var] = pd.Categorical(
         plot_data[time_var],
         categories=time_order,
         ordered=True
     )
+    
+    # Set order for Symptoms if that's the group_var
+    if group_var == 'Symptoms':
+        symptoms_order = ['Asymptomatic', 'Mild', 'Severe']
+        # Convert to categorical with specific order
+        plot_data[group_var] = pd.Categorical(
+            plot_data[group_var],
+            categories=symptoms_order,
+            ordered=True
+        )
     
     # Create a vertical facet grid with time points as rows
     fig, axes = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
@@ -653,11 +663,22 @@ def plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, group_var, outpu
         # Set title and labels
         axes[row_idx].set_title(f'{time_point}', fontsize=12, fontweight='bold')
         
-        # Add y-label only to the middle subplot
-        if row_idx == 1:
-            axes[row_idx].set_ylabel('Abundance', fontsize=12)
+        # Move y-label to the right side and rotate it -90 degrees
+        # Remove all y-labels first
+        axes[row_idx].set_ylabel('')
+        
+        # Add the time point as a rotated label on the right y-axis
+        # Create a twin axis for the right side
+        ax_right = axes[row_idx].twinx()
+        
+        # Only set the ylabel for the right axis, rotated -90 degrees
+        if row_idx == 1:  # Middle subplot gets the "Abundance" label
+            ax_right.set_ylabel('Abundance', fontsize=12, rotation=-90, labelpad=15)
         else:
-            axes[row_idx].set_ylabel('')
+            ax_right.set_ylabel('')
+        
+        # Hide the tick labels on the right y-axis
+        ax_right.set_yticks([])
             
         # Only add x-label to the bottom subplot
         if row_idx == len(time_order) - 1:
@@ -679,6 +700,7 @@ def plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, group_var, outpu
         print(f"Plot saved to {output_file}")
     
     return fig
+
 
 def plot_co_occurrence_heatmap(abundance_df, metadata_df, species_indices, output_dir):
     """
