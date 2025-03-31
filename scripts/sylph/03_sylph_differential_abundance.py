@@ -49,11 +49,11 @@ def parse_args():
                        help='Which abundance measure to use')
     parser.add_argument('--min-ani', type=float, default=95.0,
                        help='Minimum Adjusted ANI to include in analysis')
-    parser.add_argument('--min-coverage', type=float, default=0.05,
+    parser.add_argument('--min-coverage', type=float, default=0.01,
                        help='Minimum effective coverage to include in analysis')
-    parser.add_argument('--min-prevalence', type=float, default=0.1,
+    parser.add_argument('--min-prevalence', type=float, default=0.05,
                        help='Minimum prevalence to keep taxon')
-    parser.add_argument('--min-abundance', type=float, default=0.01,
+    parser.add_argument('--min-abundance', type=float, default=0.005,
                        help='Minimum mean abundance to keep taxon')
     return parser.parse_args()
 
@@ -107,7 +107,7 @@ def extract_taxonomic_info(contig_name):
     
     return taxonomy
 
-def parse_sylph_file(file_path, abundance_type='Taxonomic_abundance', min_ani=95.0, min_coverage=0.05):
+def parse_sylph_file(file_path, abundance_type='Taxonomic_abundance', min_ani=92.0, min_coverage=0.01):
     """
     Parse a Sylph output file and extract abundance data.
     
@@ -187,8 +187,9 @@ def parse_sylph_file(file_path, abundance_type='Taxonomic_abundance', min_ani=95
         print(f"Error parsing {file_path}: {str(e)}")
         return pd.DataFrame()
 
+# we already have an output file. Modify to point to the combined file
 def combine_sylph_samples(files, sample_ids=None, abundance_type='Taxonomic_abundance', 
-                          min_ani=95.0, min_coverage=0.05):
+                          min_ani=92.0, min_coverage=0.01):
     """
     Combine multiple Sylph output files into a single abundance table.
     
@@ -310,7 +311,8 @@ def load_metadata(metadata_file, sample_id_column='SampleID'):
         print(f"Error loading metadata file: {str(e)}")
         return pd.DataFrame()
 
-def filter_low_abundance(abundance_df, min_prevalence=0.1, min_abundance=0.01):
+# already have a filtered output file from 01_parse_sylph
+def filter_low_abundance(abundance_df, min_prevalence=0.05, min_abundance=0.005):
     """
     Filter out low abundance and low prevalence taxa.
     
@@ -343,7 +345,7 @@ def filter_low_abundance(abundance_df, min_prevalence=0.1, min_abundance=0.01):
     
     return abundance_df.loc[keep_taxa]
 
-def differential_abundance_analysis(abundance_df, metadata_df, group_var, adjusted_p_threshold=0.05):
+def differential_abundance_analysis(abundance_df, metadata_df, group_var, adjusted_p_threshold=0.01):
     """
     Identify differentially abundant taxa between groups.
     
@@ -399,9 +401,9 @@ def differential_abundance_analysis(abundance_df, metadata_df, group_var, adjust
     
     return results_df
 
-def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=None):
+def plot_taxa_boxplot(abundance_df, metadata_df, taxon, time_var, group_var, output_file=None):
     """
-    Create a boxplot showing taxon abundance changes across time points.
+    Create a faceted boxplot showing taxon abundance across time points by group.
     
     Parameters:
     -----------
@@ -413,6 +415,8 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
         Taxon name to plot
     time_var : str
         Time variable column name (e.g., 'Timing')
+    group_var : str
+        Grouping variable column name (e.g., 'Severity', 'Symptoms')
     output_file : str, optional
         Path to save the plot
         
@@ -421,6 +425,12 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
     matplotlib.figure.Figure
         Boxplot figure
     """
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import pandas as pd
+    import numpy as np
+    from scipy.stats import mannwhitneyu
+    
     # Get common samples
     common_samples = list(set(abundance_df.columns).intersection(set(metadata_df.index)))
     
@@ -429,27 +439,22 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
         print(f"Error: Taxon '{taxon}' not found in abundance data")
         return None
     
+    # Extract abundance data for the taxon
     taxon_abundance = abundance_df.loc[taxon, common_samples]
     
-    # Get time information
-    time_info = metadata_df.loc[common_samples, time_var].copy()
+    # Get relevant metadata
+    meta_subset = metadata_df.loc[common_samples, [time_var, group_var]].copy()
     
-    # Create a DataFrame for plotting
-    plot_data = pd.DataFrame({
-        'Abundance': taxon_abundance,
-        time_var: time_info
-    })
-    
-    # Create figure
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    # Define the correct order for time points
+    # Define the correct order for time points (vertically from top to bottom)
     time_order = ['Prior', 'Acute', 'Post']
     
-    # Ensure plot_data is initialized
-    plot_data = metadata_df.copy()
-
-
+    # Create a DataFrame for plotting by merging abundance with metadata
+    plot_data = pd.DataFrame()
+    plot_data['SampleID'] = common_samples
+    plot_data['Abundance'] = [taxon_abundance[sample] for sample in common_samples]
+    plot_data[time_var] = [meta_subset.loc[sample, time_var] for sample in common_samples]
+    plot_data[group_var] = [meta_subset.loc[sample, group_var] for sample in common_samples]
+    
     # Create a categorical variable with the correct order
     plot_data[time_var] = pd.Categorical(
         plot_data[time_var],
@@ -457,32 +462,72 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
         ordered=True
     )
     
+    # Create a vertical facet grid with time points as rows
+    fig, axes = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
     
-    # Create boxplot
-    sns.boxplot(x=time_var, y='Abundance', data=plot_data, ax=ax)
+    # Map time points to row indices
+    time_to_row = {time: i for i, time in enumerate(time_order)}
     
-    # Add individual points
-    sns.stripplot(x=time_var, y='Abundance', data=plot_data, 
-                color='black', size=4, alpha=0.5, ax=ax)
+    # Process each time point
+    for time_point in time_order:
+        # Get the corresponding row index
+        row_idx = time_to_row[time_point]
+        
+        # Filter data for this time point
+        time_data = plot_data[plot_data[time_var] == time_point]
+        
+        if time_data.empty:
+            # If no data for this time point, add text to the axis
+            axes[row_idx].text(0.5, 0.5, f'No data for {time_point}', 
+                             ha='center', va='center', fontsize=12)
+            axes[row_idx].set_title(time_point)
+            continue
+        
+        # Create boxplot for this time point
+        sns.boxplot(x=group_var, y='Abundance', data=time_data, ax=axes[row_idx])
+        
+        # Add individual points
+        sns.stripplot(x=group_var, y='Abundance', data=time_data, 
+                    color='black', size=4, alpha=0.5, ax=axes[row_idx])
+        
+        # Calculate p-value for this time point
+        groups = time_data[group_var].unique()
+        if len(groups) == 2:
+            group1_data = time_data[time_data[group_var] == groups[0]]['Abundance']
+            group2_data = time_data[time_data[group_var] == groups[1]]['Abundance']
+            
+            if len(group1_data) > 1 and len(group2_data) > 1:
+                try:
+                    _, p_value = mannwhitneyu(group1_data, group2_data, alternative='two-sided')
+                    axes[row_idx].text(0.5, 0.01, f'p = {p_value:.3f}', ha='center', va='bottom', 
+                                transform=axes[row_idx].transAxes,
+                                bbox=dict(facecolor='white', alpha=0.8, boxstyle='round,pad=0.5'))
+                except Exception as e:
+                    print(f"Error calculating p-value: {str(e)}")
+                    pass
+        
+        # Set title and labels
+        axes[row_idx].set_title(f'{time_point}', fontsize=12, fontweight='bold')
+        
+        # Add y-label only to the middle subplot
+        if row_idx == 1:
+            axes[row_idx].set_ylabel('Abundance', fontsize=12)
+        else:
+            axes[row_idx].set_ylabel('')
+            
+        # Only add x-label to the bottom subplot
+        if row_idx == len(time_order) - 1:
+            axes[row_idx].set_xlabel(group_var, fontsize=12)
+        else:
+            axes[row_idx].set_xlabel('')
     
-    # Perform Kruskal-Wallis test
-    try:
-        groups = [plot_data[plot_data[time_var] == t]['Abundance'].values for t in plot_data[time_var].unique()]
-        if all(len(g) > 0 for g in groups):
-            stat, p_value = kruskal(*groups)
-            ax.text(0.5, 0.01, f'Kruskal-Wallis p = {p_value:.3f}', ha='center', va='bottom', 
-                  transform=ax.transAxes,
-                  bbox=dict(facecolor='white', alpha=0.8, boxstyle='round,pad=0.5'))
-    except:
-        pass
-    
-    # Set title and labels
-    ax.set_title(f'{taxon} Abundance Across Time Points')
-    ax.set_xlabel(time_var)
-    ax.set_ylabel('Abundance')
+    # Add overall title
+    plt.suptitle(f'{taxon} Abundance by {group_var} Across Time Points', 
+                fontsize=14, fontweight='bold', y=0.98)
     
     # Adjust layout
     plt.tight_layout()
+    fig.subplots_adjust(top=0.92)
     
     # Save figure if output file is provided
     if output_file is not None:
@@ -490,6 +535,7 @@ def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=
         print(f"Plot saved to {output_file}")
     
     return fig
+
 
 def _two_group_differential_testing(abundance_df, groups, unique_groups):
     """Helper function for differential testing with two groups using Mann-Whitney U test."""
@@ -769,7 +815,110 @@ def plot_taxa_boxplot(abundance_df, metadata_df, taxon, time_var, group_var, out
     return fig
 
 
-def analyze_by_timepoint(abundance_df, metadata_df, time_var, group_vars, adjusted_p_threshold=0.05):
+def plot_timing_boxplot(abundance_df, metadata_df, taxon, time_var, output_file=None):
+    """
+    Create a boxplot showing taxon abundance changes across time points.
+    
+    Parameters:
+    -----------
+    abundance_df : pandas.DataFrame
+        Taxa abundance DataFrame with taxa as index, samples as columns
+    metadata_df : pandas.DataFrame
+        Metadata DataFrame with samples as index
+    taxon : str
+        Taxon name to plot
+    time_var : str
+        Time variable column name (e.g., 'Timing')
+    output_file : str, optional
+        Path to save the plot
+        
+    Returns:
+    --------
+    matplotlib.figure.Figure
+        Boxplot figure
+    """
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import pandas as pd
+    import numpy as np
+    from scipy.stats import kruskal
+    
+    # Get common samples
+    common_samples = list(set(abundance_df.columns).intersection(set(metadata_df.index)))
+    
+    # Get taxon abundance
+    if taxon not in abundance_df.index:
+        print(f"Error: Taxon '{taxon}' not found in abundance data")
+        return None
+    
+    # Extract abundance data for the taxon
+    taxon_abundance = abundance_df.loc[taxon, common_samples]
+    
+    # Get time information
+    time_info = metadata_df.loc[common_samples, time_var].copy()
+    
+    # Create a DataFrame for plotting
+    plot_data = pd.DataFrame()
+    plot_data['SampleID'] = common_samples
+    plot_data['Abundance'] = [taxon_abundance[sample] for sample in common_samples]
+    plot_data[time_var] = [time_info.loc[sample] for sample in common_samples]
+    
+    # Define the correct order for time points
+    time_order = ['Prior', 'Acute', 'Post']
+    
+    # Create a categorical variable with the correct order
+    plot_data[time_var] = pd.Categorical(
+        plot_data[time_var],
+        categories=time_order,
+        ordered=True
+    )
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Create boxplot
+    sns.boxplot(x=time_var, y='Abundance', data=plot_data, ax=ax)
+    
+    # Add individual points
+    sns.stripplot(x=time_var, y='Abundance', data=plot_data, 
+                 color='black', size=4, alpha=0.5, ax=ax)
+    
+    # Perform Kruskal-Wallis test
+    try:
+        # Group data by time point
+        groups = []
+        for t in time_order:
+            time_group = plot_data[plot_data[time_var] == t]['Abundance'].values
+            if len(time_group) > 0:
+                groups.append(time_group)
+        
+        # Only perform test if we have at least 2 groups with data
+        if len(groups) >= 2 and all(len(g) > 0 for g in groups):
+            stat, p_value = kruskal(*groups)
+            ax.text(0.5, 0.01, f'Kruskal-Wallis p = {p_value:.3f}', ha='center', va='bottom', 
+                  transform=ax.transAxes,
+                  bbox=dict(facecolor='white', alpha=0.8, boxstyle='round,pad=0.5'))
+    except Exception as e:
+        print(f"Error calculating p-value: {str(e)}")
+        pass
+    
+    # Set title and labels
+    ax.set_title(f'{taxon} Abundance Across Time Points', fontsize=14, fontweight='bold')
+    ax.set_xlabel(time_var, fontsize=12)
+    ax.set_ylabel('Abundance', fontsize=12)
+    
+    # Adjust layout
+    plt.tight_layout()
+    
+    # Save figure if output file is provided
+    if output_file is not None:
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {output_file}")
+    
+    return fig
+
+
+def analyze_by_timepoint(abundance_df, metadata_df, time_var, group_vars, adjusted_p_threshold=0.1):
     """
     Perform differential abundance analysis at each time point for each grouping variable.
     
@@ -864,7 +1013,7 @@ def analyze_by_timepoint(abundance_df, metadata_df, time_var, group_vars, adjust
     
     return results
 
-def analyze_by_timing(abundance_df, metadata_df, time_var, adjusted_p_threshold=0.05):
+def analyze_by_timing(abundance_df, metadata_df, time_var, adjusted_p_threshold=0.1):
     """
     Perform analysis to identify taxa that change significantly across time points.
     
@@ -1213,7 +1362,7 @@ def main():
         print(f"Timing analysis results saved to {timing_file}")
         
         # Create plots for top taxa
-        significant_taxa = timing_results[timing_results['Adjusted P-value'] < 0.05]['Taxon'].tolist()
+        significant_taxa = timing_results[timing_results['Adjusted P-value'] < 0.1]['Taxon'].tolist()
         
         if significant_taxa:
             print(f"\nCreating boxplots for {len(significant_taxa)} taxa with significant timing changes")
@@ -1252,7 +1401,7 @@ def main():
                 print(f"Results for {time_point} by {group_var} saved to {result_file}")
                 
                 # Create plots for significant taxa
-                significant_taxa = results_df[results_df['Adjusted P-value'] < 0.05]['Taxon'].tolist()
+                significant_taxa = results_df[results_df['Adjusted P-value'] < 0.1]['Taxon'].tolist()
                 
                 if significant_taxa:
                     print(f"\nCreating boxplots for {len(significant_taxa)} taxa with significant {group_var} differences at {time_point}")
