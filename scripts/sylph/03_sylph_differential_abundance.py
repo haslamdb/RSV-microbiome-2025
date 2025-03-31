@@ -677,8 +677,15 @@ def plot_taxa_boxplot(abundance_df, metadata_df, taxon, time_var, group_var, out
     
     # Get metadata information
     meta_subset = metadata_df.loc[common_samples, [time_var, group_var]].copy()
-
-    # Define the correct order for time points
+    
+    # Create a DataFrame for plotting
+    plot_data = pd.DataFrame({
+        'Abundance': taxon_abundance,
+        time_var: meta_subset[time_var],
+        group_var: meta_subset[group_var]
+    })
+    
+    # Define the correct order for time points (vertically from top to bottom)
     time_order = ['Prior', 'Acute', 'Post']
     
     # Create a categorical variable with the correct order
@@ -688,32 +695,33 @@ def plot_taxa_boxplot(abundance_df, metadata_df, taxon, time_var, group_var, out
         ordered=True
     )
     
+    # Create a vertical facet grid with time points as rows
+    fig, axes = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
     
-    # Create a DataFrame for plotting
-    plot_data = pd.DataFrame({
-        'Abundance': taxon_abundance,
-        time_var: meta_subset[time_var],
-        group_var: meta_subset[group_var]
-    })
+    # Map time points to row indices
+    time_to_row = {time: i for i, time in enumerate(time_order)}
     
-    # Create figure with appropriate size for facets
-    time_points = plot_data[time_var].unique()
-    fig, axes = plt.subplots(1, len(time_points), figsize=(4*len(time_points), 5), sharey=True)
-    
-    # Handle the case with only one time point
-    if len(time_points) == 1:
-        axes = [axes]
-    
-    # Create boxplot for each time point
-    for i, time_point in enumerate(sorted(time_points)):
+    # Process each time point
+    for time_point in time_order:
+        # Get the corresponding row index
+        row_idx = time_to_row[time_point]
+        
+        # Filter data for this time point
         time_data = plot_data[plot_data[time_var] == time_point]
         
+        if time_data.empty:
+            # If no data for this time point, add text to the axis
+            axes[row_idx].text(0.5, 0.5, f'No data for {time_point}', 
+                             ha='center', va='center', fontsize=12)
+            axes[row_idx].set_title(time_point)
+            continue
+        
         # Create boxplot for this time point
-        sns.boxplot(x=group_var, y='Abundance', data=time_data, ax=axes[i])
+        sns.boxplot(x=group_var, y='Abundance', data=time_data, ax=axes[row_idx])
         
         # Add individual points
         sns.stripplot(x=group_var, y='Abundance', data=time_data, 
-                     color='black', size=4, alpha=0.5, ax=axes[i])
+                    color='black', size=4, alpha=0.5, ax=axes[row_idx])
         
         # Calculate p-value for this time point
         groups = time_data[group_var].unique()
@@ -724,27 +732,34 @@ def plot_taxa_boxplot(abundance_df, metadata_df, taxon, time_var, group_var, out
             if len(group1_data) > 1 and len(group2_data) > 1:
                 try:
                     _, p_value = mannwhitneyu(group1_data, group2_data, alternative='two-sided')
-                    axes[i].text(0.5, 0.01, f'p = {p_value:.3f}', ha='center', va='bottom', 
-                                transform=axes[i].transAxes,
+                    axes[row_idx].text(0.5, 0.01, f'p = {p_value:.3f}', ha='center', va='bottom', 
+                                transform=axes[row_idx].transAxes,
                                 bbox=dict(facecolor='white', alpha=0.8, boxstyle='round,pad=0.5'))
-                except:
+                except Exception as e:
                     pass
         
         # Set title and labels
-        axes[i].set_title(f'{time_point}')
-        axes[i].set_xlabel(group_var)
+        axes[row_idx].set_title(f'{time_point}', fontsize=12, fontweight='bold')
         
-        # Only add y-label to the first subplot
-        if i == 0:
-            axes[i].set_ylabel('Abundance')
+        # Add y-label only to the middle subplot
+        if row_idx == 1:
+            axes[row_idx].set_ylabel('Abundance', fontsize=12)
         else:
-            axes[i].set_ylabel('')
+            axes[row_idx].set_ylabel('')
+            
+        # Only add x-label to the bottom subplot
+        if row_idx == len(time_order) - 1:
+            axes[row_idx].set_xlabel(group_var, fontsize=12)
+        else:
+            axes[row_idx].set_xlabel('')
     
     # Add overall title
-    plt.suptitle(f'{taxon} Abundance by {group_var} Across Time Points', fontsize=14, y=1.05)
+    plt.suptitle(f'{taxon} Abundance by {group_var} Across Time Points', 
+                fontsize=14, fontweight='bold', y=0.98)
     
     # Adjust layout
     plt.tight_layout()
+    fig.subplots_adjust(top=0.92)
     
     # Save figure if output file is provided
     if output_file is not None:
@@ -752,6 +767,7 @@ def plot_taxa_boxplot(abundance_df, metadata_df, taxon, time_var, group_var, out
         print(f"Plot saved to {output_file}")
     
     return fig
+
 
 def analyze_by_timepoint(abundance_df, metadata_df, time_var, group_vars, adjusted_p_threshold=0.05):
     """

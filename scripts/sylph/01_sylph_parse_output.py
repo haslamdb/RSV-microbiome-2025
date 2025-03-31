@@ -93,7 +93,7 @@ def extract_taxonomic_info(contig_name):
     
     return taxonomy
 
-def parse_sylph_file(file_path, abundance_type='Taxonomic_abundance', min_ani=95.0, min_coverage=0.05):
+def parse_sylph_file(file_path, abundance_type='Taxonomic_abundance', min_ani=92.0, min_coverage=0.01):
     """
     Parse a Sylph output file and extract abundance data.
     
