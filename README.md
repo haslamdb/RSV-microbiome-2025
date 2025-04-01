@@ -4,28 +4,53 @@ Analysis of nasal microbiome in relation to RSV infection severity and clinical 
 
 ## Project Overview
 
-This repository contains analysis code and workflows for studying the nasal microbiome in the context of RSV infections. The project utilizes both MetaPhlAn and Sylph microbial profiling data to investigate relationships between nasal microbiome composition and RSV disease severity, symptoms, and clinical outcomes.
+This repository contains analysis code and workflows for studying the nasal microbiome in the context of RSV infections. The project supports multiple microbiome profiling tools including MetaPhlAn, Kraken2/Bracken, and Sylph to investigate relationships between nasal microbiome composition and RSV disease severity, symptoms, and clinical outcomes.
 
 ## Directory Structure
 
 ```
 RSV-microbiome-2025/
 ├── data/               # Data files
-│   ├── raw/            # Raw MetaPhlAn and Sylph output files
+│   ├── raw/            # Raw profiling output files (MetaPhlAn, Kraken, Sylph)
 │   └── processed/      # Processed abundance tables
 ├── metadata.csv        # Sample and subject metadata
 ├── notebooks/          # Jupyter notebooks for analysis
 ├── scripts/            # Analysis scripts
+│   ├── bash_workflow.sh           # Complete MetaPhlAn workflow script
+│   ├── metaphlan/                 # MetaPhlAn analysis scripts
+│   │   ├── 01_process_metaphlan_files.py
+│   │   ├── 02_calculate_diversity.py
+│   │   ├── 03_differential_abundance.py
+│   │   ├── 04_longitudinal_analysis.py
+│   │   └── 05_generate_report.py
+│   ├── kraken/                    # Kraken/Bracken analysis scripts
+│   │   ├── 01_process_kraken_data.py
+│   │   ├── 02_kraken_differential_abundance.py
+│   │   ├── 03_generate_kraken_report.py
+│   │   ├── 04_cooccurence_analysis.py
+│   │   └── kraken_rsv_microbiome.sh
+│   ├── sylph/                     # Sylph analysis scripts
+│   │   ├── 01_sylph_parse_output.py
+│   │   ├── 02_analyze_sylph_data.py
+│   │   ├── 03_sylph_differential_abundance.py
+│   │   ├── 04_cooccurence_analysis.py
+│   │   ├── 05_generate_sylph_report.py
+│   │   └── sylph_rsv_microbiome.sh
 │   └── utils/          # Utility functions and parser patches
+│       └── parser_patch.py
 ├── results/            # Analysis outputs (figures, tables)
 │   ├── figures/        # Generated figures
-│   │   ├── species_boxplots/   # Boxplots for significant species
-│   │   └── longitudinal_plots/ # Longitudinal analysis visualizations
+│   │   ├── species_boxplots/      # Boxplots for significant species
+│   │   └── longitudinal_plots/    # Longitudinal analysis visualizations
+│   ├── kraken_analysis/           # Kraken analysis results
+│   ├── sylph_analysis/            # Sylph analysis results 
 │   └── tables/         # Generated data tables
 ├── tools/              # Analysis tools
-│   ├── metaphlan_tools/  # Git submodule for MetaPhlAn analysis tools
-│   └── sylph_tools/      # Sylph microbiome analysis tools
+│   ├── metaphlan_tools/  # Tools for MetaPhlAn analysis
+│   ├── kraken_tools/     # Tools for Kraken/Bracken analysis
+│   └── sylph_tools/      # Tools for Sylph microbiome analysis
 ├── config/             # Configuration files
+│   └── analysis_parameters.yml    # Parameters for all analysis workflows
 └── docs/               # Documentation
 ```
 
@@ -36,6 +61,10 @@ RSV-microbiome-2025/
 - Python 3.12 or higher
 - Git (with Git LFS for tracking large files)
 - Conda or Mamba (recommended for environment management)
+- For raw data analysis:
+  - MetaPhlAn v4.0+
+  - Kraken2 and Bracken
+  - Sylph
 
 ### Installation
 
@@ -53,18 +82,18 @@ RSV-microbiome-2025/
 
 3. Install the analysis tools packages:
    ```bash
-   # For MetaPhlAn tools
+   # For all analysis tools
    conda install conda-build
    conda develop tools/metaphlan_tools
-   
-   # For Sylph tools
+   conda develop tools/kraken_tools
    conda develop tools/sylph_tools
    ```
    
-   Alternatively, if you encounter issues, you can use pip with the necessary flag:
+   Alternatively, if you encounter issues, you can use pip:
    ```bash
-   pip install -e tools/metaphlan_tools --break-system-packages
-   pip install -e tools/sylph_tools --break-system-packages
+   pip install -e tools/metaphlan_tools
+   pip install -e tools/kraken_tools
+   pip install -e tools/sylph_tools
    ```
 
 4. Create necessary directories (if they don't exist):
@@ -72,16 +101,14 @@ RSV-microbiome-2025/
    mkdir -p data/raw data/processed results/figures/species_boxplots results/figures/longitudinal_plots results/tables config
    ```
 
-5. Copy the analysis configuration file:
+5. Configure the analysis parameters:
    ```bash
    # If not already present
    cp config/analysis_parameters.yml.example config/analysis_parameters.yml
    # Edit the parameters as needed
    ```
 
-## Analysis Workflow
-
-The repository supports analysis of both MetaPhlAn and Sylph microbial profiling data through specialized tool modules.
+## Analysis Workflows
 
 ### MetaPhlAn Analysis
 
@@ -95,36 +122,64 @@ The MetaPhlAn workflow includes:
 2. **Diversity Analysis**: Calculate and compare diversity metrics
 3. **Differential Abundance**: Identify taxa that differ between clinical groups
 4. **Longitudinal Analysis**: Track microbiome changes over the course of infection
-5. **Visualization**: Generate boxplots, ordination plots, and other visualizations
-6. **Report Generation**: Create summary visualizations and findings
+5. **Report Generation**: Create summary visualizations and findings
+
+Individual steps can be run separately:
+```bash
+python scripts/metaphlan/01_process_metaphlan_files.py
+python scripts/metaphlan/02_calculate_diversity.py
+python scripts/metaphlan/03_differential_abundance.py
+python scripts/metaphlan/04_longitudinal_analysis.py
+python scripts/metaphlan/05_generate_report.py
+```
+
+### Kraken/Bracken Analysis
+
+```bash
+# Run Kraken2 and Bracken on raw sequencing data
+./scripts/kraken/kraken_rsv_microbiome.sh
+
+# Process Kraken data and perform analyses
+python scripts/kraken/01_process_kraken_data.py
+python scripts/kraken/02_kraken_differential_abundance.py
+python scripts/kraken/03_generate_kraken_report.py
+python scripts/kraken/04_cooccurence_analysis.py
+```
+
+The Kraken/Bracken workflow includes:
+1. **Data Processing**: Run Kraken2/Bracken on raw reads and process outputs
+2. **Diversity Analysis**: Calculate alpha and beta diversity metrics
+3. **Differential Abundance**: Identify differentially abundant taxa between groups
+4. **Co-occurrence Analysis**: Study relationships between specific species (e.g., S. pneumoniae and H. influenzae)
+5. **Report Generation**: Create comprehensive reports with visualizations
 
 ### Sylph Analysis
 
-For Sylph data analysis, the repository provides a suite of tools in the `sylph_tools` module with equivalent functionality:
+```bash
+# Run Sylph on raw sequencing data
+./scripts/sylph/sylph_rsv_microbiome.sh
 
-1. **Diversity Analysis**:
-   ```python
-   from sylph_tools import calculate_alpha_diversity, calculate_beta_diversity, compare_alpha_diversity
-   ```
+# Process Sylph data and perform analyses
+python scripts/sylph/01_sylph_parse_output.py
+python scripts/sylph/02_analyze_sylph_data.py
+python scripts/sylph/03_sylph_differential_abundance.py
+python scripts/sylph/04_cooccurence_analysis.py
+```
 
-2. **Statistical Analysis**:
-   ```python
-   from sylph_tools import perform_permanova, differential_abundance_analysis
-   ```
+The Sylph workflow includes:
+1. **Data Processing**: Parse Sylph profiling outputs for bacteria, viruses, and fungi
+2. **Diversity Analysis**: Calculate diversity metrics across samples
+3. **Differential Abundance**: Identify differentially abundant taxa between clinical groups
+4. **Co-occurrence Analysis**: Examine specific species relationships (similar to Kraken workflow)
+5. **Temporal Analysis**: Track microbiome changes over time (Prior, Acute, Post)
 
-3. **Visualization**:
-   ```python
-   from sylph_tools import plot_alpha_diversity_boxplot, plot_ordination, plot_stacked_bar, plot_correlation_network
-   ```
+## Tool Comparison
 
-4. **Data Processing**:
-   ```python
-   from sylph_tools import load_metadata, preprocess_abundance_data, filter_low_abundance
-   ```
+The repository supports three different profiling tools, each with its strengths:
 
-### Interactive Analysis
-
-Explore the analysis interactively through the Jupyter notebooks in the `notebooks/` directory.
+- **MetaPhlAn**: Marker gene-based approach with detailed taxonomic resolution
+- **Kraken2/Bracken**: Fast k-mer based classification with good accuracy
+- **Sylph**: Modern sketching-based profiler with support for bacteria, viruses, and fungi
 
 ## Metadata
 
@@ -137,56 +192,60 @@ The metadata.csv file contains the following key variables:
 - **Severity**: Severity score of RSV infection
 - **Symptoms**: Symptom classification (Asymptomatic, Mild, Severe)
 
+## Key Analyses
+
+### Diversity Analysis
+
+All three workflows include comprehensive diversity analysis:
+- **Alpha Diversity**: Shannon, Simpson, observed species
+- **Beta Diversity**: Bray-Curtis, weighted/unweighted UniFrac
+- **Ordination**: PCoA and NMDS for visualization
+
+### Differential Abundance
+
+Identify significant differences in microbial abundance:
+- Between severity groups (mild vs. severe)
+- Between symptom categories
+- Across time points (Prior, Acute, Post)
+
+### Co-occurrence Analysis
+
+The repository includes specialized scripts for co-occurrence analysis:
+- Built-in focus on S. pneumoniae and H. influenzae interactions
+- Cross-timepoint analysis of species co-occurrence
+
+### Longitudinal Analysis
+
+Track changes in the microbiome over the course of RSV infection:
+- Visualize species abundance across time points
+- Identify species with significant temporal patterns
+
 ## Advanced Features
+
+### Correlation Networks
+
+```python
+# For any of the analysis tools
+from metaphlan_tools.viz import plot_correlation_network
+from kraken_tools.analysis.network import plot_species_correlation_network
+from sylph_tools import plot_correlation_network
+```
 
 ### Robust Parsing
 
-The repository includes enhanced parsers for handling various MetaPhlAn file formats and edge cases:
+The repository includes enhanced parsers for handling various file formats:
 
 ```python
 from scripts.utils.parser_patch import patched_parse_metaphlan_file, patched_combine_samples
 ```
 
-### Network Analysis
+### Taxonomic Analysis
 
-Correlation network analysis to identify interactions between microbial species:
-
-```python
-from sylph_tools import plot_correlation_network
-```
-
-### Heatmap Visualization
-
-Create relative abundance heatmaps with sample clustering and group annotations:
+Extract and analyze taxonomy information:
 
 ```python
-from sylph_tools import plot_relative_abundance_heatmap
-```
-
-## Additional Utilities
-
-### Taxonomy Metadata
-
-Extract and add taxonomy information from taxon names:
-
-```python
+from kraken_tools.analysis.taxonomy import read_and_process_taxonomy
 from sylph_tools import add_taxonomy_metadata
-```
-
-### Diversity Comparisons
-
-Statistical comparison of alpha diversity between groups:
-
-```python
-from sylph_tools import compare_alpha_diversity
-```
-
-### Export Formats
-
-Export abundance data to various formats, including BIOM:
-
-```python
-from sylph_tools import export_biom_format
 ```
 
 ## Contributing
