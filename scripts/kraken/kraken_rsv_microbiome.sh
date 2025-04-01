@@ -12,6 +12,8 @@ for f in $files; do
     /usr/local/Kraken2_Old/kraken2 --paired \
         --threads 12 \
         --db ~/Databases/KrakenPlusPF \
+	--classified-out ~/Documents/Alignments/KrakenAlignments/KrakenNew/${f}.classified \
+	--log ~/Documents/Alignments/KrakenAlignments/KrakenNew/${f}.log \
         --output ~/Documents/Alignments/KrakenAlignments/KrakenNew/${f}.kraken \
         --report ~/Documents/Alignments/KrakenAlignments/KrakenNew/${f}.kreport \
         ~/Analysis/TrimmedMSSFiles/trimmed_read1_${f}.fastq.gz \
