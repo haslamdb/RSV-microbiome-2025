@@ -1,10 +1,6 @@
 # This script runs Kraken2 and Bracken on RSV microbiome samples
 # Database is located at ~/Databases/KrakenPlusPF
 
-# Create output directories
-mkdir -p ~/Analysis/TrimmedMSSFiles/KrakenOutput
-mkdir -p ~/Analysis/TrimmedMSSFiles/KrakenOutput/reports
-mkdir -p ~/Analysis/TrimmedMSSFiles/BrackenOutput
 
 # Read sample list
 files=$(cat ~/Documents/Code/RSV-microbiome-2025/sample_list.txt)
@@ -15,7 +11,8 @@ for f in $files; do
     
     # Run Kraken2 with paired-end reads
     k2 classify --paired \
-        --threads 24 \
+	--gzip-compressed \
+        --threads 12 \
         --db ~/Databases/KrakenPlusPF \
         --output ~/Documents/Alignments/KrakenAlignments/KrakenNew/${f}.kraken \
         --report ~/Documents/Alignments/KrakenAlignments/KrakenNew/${f}.kreport \
