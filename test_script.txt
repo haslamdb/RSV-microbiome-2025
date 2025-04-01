@@ -1,0 +1,5 @@
+
+python scripts/kraken/process_kraken_data.py  --bracken-dir ~/Documents/Alignments/KrakenAlignments/KrakenNew --output-dir
+      results/kraken_analysis --taxonomic-level S --metadata metadata.csv
+
+python scripts/kraken/custom_differential_abundance.py --output-dir results/differential_abundance --method t-test --abundance-file processed_data/normalized_abundance.tsv --group-col Timing --metadata metadata.csv

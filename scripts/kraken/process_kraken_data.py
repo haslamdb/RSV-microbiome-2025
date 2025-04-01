@@ -10,6 +10,7 @@ import numpy as np
 import glob
 import logging
 from pathlib import Path
+from typing import Dict, List, Optional, Union, Set
 
 # Add kraken_tools to path
 kraken_tools_path = os.path.expanduser("~/Documents/Code/kraken_tools")
@@ -29,6 +30,10 @@ try:
         merge_bracken_files
     )
     from kraken_tools.logger import setup_logger, log_print
+    from kraken_tools.utils.metadata_utils import (
+        collect_samples_from_metadata,
+        read_samples_file
+    )
 except ImportError as e:
     print(f"Error importing from kraken_tools: {e}")
     print("Make sure kraken_tools is installed and accessible")
@@ -98,6 +103,59 @@ def parse_arguments():
         help="Path to metadata file"
     )
     
+    # Added arguments for sample selection
+    parser.add_argument(
+        "--sample-list",
+        help="Path to file containing list of sample IDs (one per line)"
+    )
+    
+    parser.add_argument(
+        "--sample-col",
+        help="Column name for sample identifiers in metadata file"
+    )
+    
+    parser.add_argument(
+        "--select-by-metadata",
+        help="Filter samples by metadata criteria (e.g., 'StudyGroup==RSV' or 'Age>2')"
+    )
+    
+    parser.add_argument(
+        "--r1-col",
+        help="Column name for R1 file paths in metadata file"
+    )
+    
+    parser.add_argument(
+        "--r2-col",
+        help="Column name for R2 file paths in metadata file"
+    )
+    
+    parser.add_argument(
+        "--file-pattern",
+        help="Pattern for finding sequence files (e.g., '{sample}_S*_R*.fastq.gz')"
+    )
+    
+    parser.add_argument(
+        "--r1-suffix",
+        help="Suffix for R1 files (e.g., '_R1.fastq.gz')"
+    )
+    
+    parser.add_argument(
+        "--r2-suffix",
+        help="Suffix for R2 files (e.g., '_R2.fastq.gz')"
+    )
+    
+    parser.add_argument(
+        "--paired",
+        action="store_true",
+        default=False,
+        help="Whether samples are paired-end reads (default: False)"
+    )
+    
+    parser.add_argument(
+        "--seq-dir",
+        help="Directory containing sequence files"
+    )
+    
     parser.add_argument(
         "--log-file",
         default=None,
@@ -125,6 +183,162 @@ def load_config(config_path):
         config = yaml.safe_load(file)
     return config
 
+def load_sample_list(sample_list_file: str, logger) -> Set[str]:
+    """
+    Load a list of sample IDs from a file.
+    
+    Args:
+        sample_list_file: Path to a file containing one sample ID per line
+        logger: Logger instance
+        
+    Returns:
+        Set of sample IDs
+    """
+    try:
+        with open(sample_list_file, 'r') as f:
+            samples = {line.strip() for line in f if line.strip() and not line.startswith('#')}
+        logger.info(f"Loaded {len(samples)} sample IDs from {sample_list_file}")
+        return samples
+    except Exception as e:
+        logger.error(f"Error loading sample list from {sample_list_file}: {str(e)}")
+        return set()
+
+def filter_samples_by_metadata_criteria(metadata_df: pd.DataFrame, criteria: str, logger) -> Set[str]:
+    """
+    Filter sample IDs based on metadata criteria.
+    
+    Args:
+        metadata_df: DataFrame containing sample metadata
+        criteria: String expression for filtering (e.g., 'StudyGroup=="RSV"' or 'Age>2')
+        logger: Logger instance
+        
+    Returns:
+        Set of sample IDs that match the criteria
+    """
+    try:
+        # Try to determine the sample ID column
+        sample_cols = [col for col in metadata_df.columns if 'sample' in col.lower() or 'id' in col.lower()]
+        if not sample_cols:
+            sample_col = metadata_df.columns[0]
+            logger.warning(f"Could not identify sample ID column, using first column: {sample_col}")
+        else:
+            sample_col = sample_cols[0]
+            logger.info(f"Using {sample_col} as sample ID column")
+        
+        # Apply query to filter metadata
+        filtered_df = metadata_df.query(criteria)
+        samples = set(filtered_df[sample_col].astype(str).values)
+        
+        logger.info(f"Filtered {len(samples)} samples matching criteria: {criteria}")
+        return samples
+    except Exception as e:
+        logger.error(f"Error filtering samples by criteria '{criteria}': {str(e)}")
+        return set()
+
+def get_samples_from_metadata(metadata_file: str, criteria: str = None, sample_col: str = None, logger=None) -> Set[str]:
+    """
+    Get sample IDs from a metadata file, optionally filtered by criteria.
+    
+    Args:
+        metadata_file: Path to metadata CSV file
+        criteria: Optional criteria for filtering samples
+        sample_col: Column name for sample identifiers
+        logger: Logger instance
+        
+    Returns:
+        Set of sample IDs
+    """
+    try:
+        # Read metadata file
+        metadata_df = pd.read_csv(metadata_file)
+        logger.info(f"Read metadata file with {len(metadata_df)} rows and columns: {metadata_df.columns.tolist()}")
+        
+        # Identify sample ID column if not specified
+        if not sample_col:
+            # Try to auto-detect
+            common_sample_cols = ['SampleID', 'Sample_ID', 'SampleName', 'sample_id', 'sample_name', 'Sample', 'ID']
+            for col in common_sample_cols:
+                if col in metadata_df.columns:
+                    sample_col = col
+                    logger.info(f"Auto-detected sample ID column: {sample_col}")
+                    break
+            
+            if not sample_col:
+                sample_col = metadata_df.columns[0]
+                logger.warning(f"Could not auto-detect sample ID column, using the first column: {sample_col}")
+        
+        # Apply criteria if provided
+        if criteria:
+            samples = filter_samples_by_metadata_criteria(metadata_df, criteria, logger)
+        else:
+            # If no criteria, include all samples from the metadata
+            samples = set(metadata_df[sample_col].astype(str).values)
+            logger.info(f"Including all {len(samples)} samples from metadata")
+        
+        # Filter out empty or NaN values
+        samples = {s for s in samples if s and s != 'nan'}
+        
+        return samples
+    except Exception as e:
+        logger.error(f"Error processing metadata file {metadata_file}: {str(e)}")
+        return set()
+
+def find_matching_files(sample_ids: Set[str], search_dir: str, file_pattern: str = None,
+                       r1_suffix: str = None, r2_suffix: str = None, paired: bool = False,
+                       logger=None) -> Dict[str, List[str]]:
+    """
+    Find files matching the given sample IDs based on patterns or suffixes.
+    
+    Args:
+        sample_ids: Set of sample IDs to search for
+        search_dir: Directory to search in
+        file_pattern: Pattern to use for file search
+        r1_suffix: Suffix for R1 files
+        r2_suffix: Suffix for R2 files
+        paired: Whether to look for paired-end files
+        logger: Logger instance
+        
+    Returns:
+        Dictionary mapping sample IDs to file paths
+    """
+    samples_dict = {}
+    
+    from kraken_tools.utils.metadata_utils import find_sample_files
+    
+    for sample_id in sample_ids:
+        # Use find_sample_files directly from kraken_tools
+        files = find_sample_files(
+            sample_id=sample_id,
+            search_dir=search_dir,
+            file_pattern=file_pattern,
+            r1_suffix=r1_suffix,
+            r2_suffix=r2_suffix,
+            paired=paired
+        )
+        
+        # If files were found, add to our dictionary
+        if files:
+            samples_dict[sample_id] = files
+    
+    logger.info(f"Found files for {len(samples_dict)} out of {len(sample_ids)} samples")
+    return samples_dict
+
+def filter_files_by_samples(files_dict: Dict[str, str], sample_ids: Set[str], logger) -> Dict[str, str]:
+    """
+    Filter a dictionary of files to only include specified sample IDs.
+    
+    Args:
+        files_dict: Dictionary mapping sample IDs to file paths
+        sample_ids: Set of sample IDs to include
+        logger: Logger instance
+        
+    Returns:
+        Filtered dictionary
+    """
+    filtered_dict = {sample_id: files_dict[sample_id] for sample_id in sample_ids if sample_id in files_dict}
+    logger.info(f"Filtered to {len(filtered_dict)} files for selected samples (from {len(files_dict)} total files)")
+    return filtered_dict
+
 def load_kraken_file(filepath, logger, taxonomic_level='S'):
     """
     Load a single Kraken report or Bracken file.
@@ -138,8 +352,14 @@ def load_kraken_file(filepath, logger, taxonomic_level='S'):
         DataFrame with species and abundance information for the sample
     """
     try:
-        # Determine file type based on extension
-        sample_id = os.path.basename(filepath).split('.')[0]
+        # Get filename and extract sample_id
+        file_base = os.path.basename(filepath)
+        if "_abundance.txt" in file_base:
+            # Format like: 3000829042-DNA_S_abundance.txt
+            sample_id = file_base.split('_')[0]
+        else:
+            # Traditional format
+            sample_id = file_base.split('.')[0]
         
         if filepath.endswith('.kreport'):
             # Use the new read_kraken_report function from kraken_tools
@@ -171,6 +391,24 @@ def load_kraken_file(filepath, logger, taxonomic_level='S'):
                 return result_df
             else:
                 logger.warning(f"Unable to read Bracken file {filepath}")
+                return None
+        
+        elif filepath.endswith('_abundance.txt'):
+            # Handle custom format like 3000829042-DNA_S_abundance.txt
+            try:
+                df = pd.read_csv(filepath, sep='\t')
+                if 'name' in df.columns and 'new_est_reads' in df.columns:
+                    # Standardize species names
+                    df['name'] = df['name'].apply(standardize_species_name)
+                    # Use new_est_reads column for read counts
+                    result_df = df[['name', 'new_est_reads']].copy()
+                    result_df.columns = ['Species', sample_id]
+                    return result_df
+                else:
+                    logger.warning(f"Missing expected columns in abundance file {filepath}")
+                    return None
+            except Exception as e:
+                logger.error(f"Error reading abundance file {filepath}: {str(e)}")
                 return None
             
         else:
@@ -217,6 +455,50 @@ def merge_abundance_data(file_dfs, logger):
     merged_df[numeric_cols] = merged_df[numeric_cols].fillna(0)
     
     return merged_df
+
+def filter_human_reads(abundance_df, logger):
+    """
+    Filter out human genome reads from abundance data.
+    
+    Args:
+        abundance_df: DataFrame with abundance data (raw read counts)
+        logger: Logger instance
+        
+    Returns:
+        Filtered abundance DataFrame with human reads removed
+    """
+    logger.info("Filtering out human genome reads")
+    
+    # Get only the abundance columns (excluding Species)
+    abundance_cols = [col for col in abundance_df.columns if col != 'Species']
+    
+    # Create copy of the dataframe
+    filtered_df = abundance_df.copy()
+    
+    # Filter out Homo sapiens (species level) and Homo (genus level)
+    human_patterns = ['Homo sapiens', 'Homo']
+    human_taxa = []
+    
+    for pattern in human_patterns:
+        matches = filtered_df[filtered_df['Species'].str.contains(pattern, case=False)]
+        if not matches.empty:
+            human_taxa.extend(matches['Species'].tolist())
+    
+    if human_taxa:
+        # Drop human taxa rows
+        filtered_df = filtered_df[~filtered_df['Species'].isin(human_taxa)]
+        logger.info(f"Removed {len(human_taxa)} human taxa: {', '.join(human_taxa)}")
+    else:
+        logger.info("No human taxa found to remove")
+    
+    # Calculate read counts before and after removal
+    before_total = abundance_df[abundance_cols].sum().sum()
+    after_total = filtered_df[abundance_cols].sum().sum()
+    removed_percentage = 100 * (before_total - after_total) / before_total if before_total > 0 else 0
+    
+    logger.info(f"Removed {before_total - after_total:,} human reads ({removed_percentage:.2f}% of total)")
+    
+    return filtered_df
 
 def filter_abundance_data(abundance_df, min_abundance, min_prevalence, logger):
     """
@@ -382,6 +664,26 @@ def main():
             
             if not args.metadata and 'metadata' in config and 'filename' in config['metadata']:
                 args.metadata = os.path.join(os.path.dirname(args.config), '..', config['metadata']['filename'])
+            
+            # Get sample selection parameters from config if provided
+            if 'sample_selection' in config:
+                sample_config = config['sample_selection']
+                if 'sample_list' in sample_config and not args.sample_list:
+                    args.sample_list = os.path.join(os.path.dirname(args.config), '..', sample_config['sample_list'])
+                if 'sample_col' in sample_config and not args.sample_col:
+                    args.sample_col = sample_config['sample_col']
+                if 'select_by_metadata' in sample_config and not args.select_by_metadata:
+                    args.select_by_metadata = sample_config['select_by_metadata']
+                if 'seq_dir' in sample_config and not args.seq_dir:
+                    args.seq_dir = sample_config['seq_dir']
+                if 'file_pattern' in sample_config and not args.file_pattern:
+                    args.file_pattern = sample_config['file_pattern']
+                if 'r1_suffix' in sample_config and not args.r1_suffix:
+                    args.r1_suffix = sample_config['r1_suffix']
+                if 'r2_suffix' in sample_config and not args.r2_suffix:
+                    args.r2_suffix = sample_config['r2_suffix']
+                if 'paired' in sample_config and not args.paired:
+                    args.paired = sample_config['paired']
         except Exception as e:
             log_print(f"Error loading configuration: {str(e)}", level="error")
             sys.exit(1)
@@ -393,6 +695,35 @@ def main():
     
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)
+    
+    # Determine which samples to include in the analysis
+    selected_samples = set()
+    
+    # Method 1: Get samples from a sample list file
+    if args.sample_list:
+        log_print(f"Loading sample list from {args.sample_list}", level="info")
+        sample_list_samples = load_sample_list(args.sample_list, logger)
+        selected_samples.update(sample_list_samples)
+        log_print(f"Added {len(sample_list_samples)} samples from sample list", level="info")
+    
+    # Method 2: Get samples from metadata (optionally filtered by criteria)
+    if args.metadata:
+        log_print(f"Loading samples from metadata {args.metadata}", level="info")
+        metadata_samples = get_samples_from_metadata(
+            metadata_file=args.metadata,
+            criteria=args.select_by_metadata,
+            sample_col=args.sample_col,
+            logger=logger
+        )
+        # If no samples selected yet, use all from metadata, otherwise use the intersection
+        if not selected_samples:
+            selected_samples.update(metadata_samples)
+            log_print(f"Added {len(metadata_samples)} samples from metadata", level="info")
+        else:
+            # Intersection - only keep samples that are in both sets
+            initial_count = len(selected_samples)
+            selected_samples = selected_samples.intersection(metadata_samples)
+            log_print(f"Filtered selected samples from {initial_count} to {len(selected_samples)} using metadata", level="info")
     
     # Process Kraken2 reports if provided
     kraken_dfs = []
@@ -414,6 +745,14 @@ def main():
             sample_id = os.path.basename(kraken_file).split('.')[0]
             kraken_files_dict[sample_id] = kraken_file
         
+        # Filter kraken files to only include selected samples
+        if selected_samples:
+            kraken_files_dict = filter_files_by_samples(kraken_files_dict, selected_samples, logger)
+            log_print(f"Filtered to {len(kraken_files_dict)} Kraken files based on sample selection", level="info")
+            
+            # Update kraken_files list to use only selected files
+            kraken_files = list(kraken_files_dict.values())
+        
         # Option 1: Use our updated load_kraken_file function 
         for kraken_file in kraken_files:
             df = load_kraken_file(kraken_file, logger, args.taxonomic_level)
@@ -432,19 +771,36 @@ def main():
     
     if args.bracken_dir:
         log_print(f"Processing Bracken files from {args.bracken_dir}", level="info")
-        bracken_files = glob.glob(os.path.join(args.bracken_dir, f"*.{args.taxonomic_level}.bracken"))
+        bracken_files = glob.glob(os.path.join(args.bracken_dir, f"*_{args.taxonomic_level}.bracken"))
         
         if not bracken_files:
             # Try other common extensions
             bracken_files = glob.glob(os.path.join(args.bracken_dir, "*.bracken"))
             bracken_files.extend(glob.glob(os.path.join(args.bracken_dir, "*.bracken.txt")))
+            # Check for custom format like *_S_abundance.txt
+            bracken_files.extend(glob.glob(os.path.join(args.bracken_dir, f"*_{args.taxonomic_level}_abundance.txt")))
         
         log_print(f"Found {len(bracken_files)} Bracken files", level="info")
         
         # Create a dictionary of sample IDs to file paths
         for bracken_file in bracken_files:
-            sample_id = os.path.basename(bracken_file).split('.')[0]
+            file_base = os.path.basename(bracken_file)
+            # Handle different filename formats
+            if "_abundance.txt" in file_base:
+                # Format like: 3000829042-DNA_S_abundance.txt
+                sample_id = file_base.split('_')[0]
+            else:
+                # Traditional format
+                sample_id = file_base.split('.')[0]
             bracken_files_dict[sample_id] = bracken_file
+        
+        # Filter bracken files to only include selected samples
+        if selected_samples:
+            bracken_files_dict = filter_files_by_samples(bracken_files_dict, selected_samples, logger)
+            log_print(f"Filtered to {len(bracken_files_dict)} Bracken files based on sample selection", level="info")
+            
+            # Update bracken_files list to use only selected files
+            bracken_files = list(bracken_files_dict.values())
             
         # Option 1: Use our updated load_kraken_file function
         for bracken_file in bracken_files:
@@ -581,6 +937,18 @@ def main():
             raw_abundance_file = os.path.join(args.output_dir, "raw_abundance.tsv")
             merged_df.to_csv(raw_abundance_file, sep='\t', index=False)
             log_print(f"Raw abundance data saved to {raw_abundance_file}", level="info")
+            
+            # Filter out human reads
+            log_print("Removing human genome reads", level="info")
+            human_filtered_df = filter_human_reads(merged_df, logger)
+            
+            # Save human-filtered abundance data
+            human_filtered_file = os.path.join(args.output_dir, "human_filtered_abundance.tsv")
+            human_filtered_df.to_csv(human_filtered_file, sep='\t', index=False)
+            log_print(f"Human-filtered abundance data saved to {human_filtered_file}", level="info")
+            
+            # Replace the merged_df with the human_filtered_df for further processing
+            merged_df = human_filtered_df
         else:
             # If direct merge failed, fall back to the traditional approach
             use_direct_merge = False
@@ -602,14 +970,27 @@ def main():
             log_print("Error: Failed to merge abundance data", level="error")
             sys.exit(1)
         
-        # Save raw abundance data
+        # Save raw abundance data (before human filtering)
         raw_abundance_file = os.path.join(args.output_dir, "raw_abundance.tsv")
         merged_df.to_csv(raw_abundance_file, sep='\t', index=False)
         log_print(f"Raw abundance data saved to {raw_abundance_file}", level="info")
     
-    # Filter abundance data
+    # Filter out human reads
+    log_print("Removing human genome reads", level="info")
+    human_filtered_df = filter_human_reads(merged_df, logger)
+    
+    # Save human-filtered abundance data
+    human_filtered_file = os.path.join(args.output_dir, "human_filtered_abundance.tsv")
+    human_filtered_df.to_csv(human_filtered_file, sep='\t', index=False)
+    log_print(f"Human-filtered abundance data saved to {human_filtered_file}", level="info")
+    
+    # Replace the merged_df with the human_filtered_df for further processing
+    # This ensures the rest of the pipeline continues with human-filtered data
+    merged_df = human_filtered_df
+    
+    # Filter abundance data based on min abundance and prevalence
     log_print("Filtering abundance data", level="info")
-    filtered_df = filter_abundance_data(merged_df, args.min_abundance, args.min_prevalence, logger)
+    filtered_df = filter_abundance_data(human_filtered_df, args.min_abundance, args.min_prevalence, logger)
     
     # Save filtered abundance data
     filtered_abundance_file = os.path.join(args.output_dir, f"filtered_{args.taxonomic_level}_abundance.tsv")

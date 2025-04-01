@@ -117,15 +117,45 @@ def main():
     
     # Run differential abundance analysis
     try:
+        # Load the abundance with metadata file which already contains both abundance and metadata
+        abundance_data = pd.read_csv(args.abundance_file, sep='\t')
+        
+        # For our data, we know SampleID is the sample identifier, and other columns like Timing, Severity, Symptoms are metadata
+        # Define known metadata columns
+        metadata_cols = ['SampleID', 'SubjectID', 'CollectionDate', 'Timing', 'Severity', 'Symptoms']
+        available_metadata_cols = [col for col in metadata_cols if col in abundance_data.columns]
+        
+        # Debugging info
+        print(f"Columns in abundance_data: {', '.join(abundance_data.columns.tolist())}")
+        print(f"Available metadata columns: {', '.join(available_metadata_cols)}")
+        
+        # Set SampleID as the index in both datasets to ensure proper matching
+        abundance_data.set_index('SampleID', inplace=True)
+        
+        # All columns that are not metadata are taxonomy columns
+        taxonomy_cols = [col for col in abundance_data.columns if col not in available_metadata_cols]
+        
+        # Create abundance dataframe with taxa as columns
+        abundance_df = abundance_data[taxonomy_cols].copy()
+        
+        # Create metadata dataframe with only metadata columns, excluding SampleID which is now the index
+        metadata_cols_minus_id = [col for col in available_metadata_cols if col != 'SampleID']
+        metadata_df = abundance_data[metadata_cols_minus_id].copy()
+        
+        # Print sample index check
+        print(f"Abundance samples: {len(abundance_df.index)}")
+        print(f"Metadata samples: {len(metadata_df.index)}")
+        
+        log_print(f"Loaded abundance data with {len(abundance_df.index)} samples and {len(taxonomy_cols)} taxa", level="info")
+        
+        # Call the function with the correct signature
         results = run_differential_abundance_analysis(
-            abundance_file=args.abundance_file,
-            metadata_file=args.metadata,
+            abundance_df=abundance_df,
+            metadata_df=metadata_df,
             output_dir=args.output_dir,
             group_col=args.group_col,
             methods=methods,
-            filter_groups=filter_groups,
-            min_abundance=args.min_abundance,
-            min_prevalence=args.min_prevalence
+            filter_groups=filter_groups
         )
         
         if results:
