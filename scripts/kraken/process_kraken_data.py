@@ -21,7 +21,13 @@ else:
 
 try:
     from kraken_tools.analysis.data_processing import standardize_species_name
-    from kraken_tools.analysis.abundance import normalize_abundance
+    from kraken_tools.analysis.abundance import (
+        read_kraken_report,
+        read_bracken_abundance_file,
+        normalize_abundance,
+        merge_kraken_reports,
+        merge_bracken_files
+    )
     from kraken_tools.logger import setup_logger, log_print
 except ImportError as e:
     print(f"Error importing from kraken_tools: {e}")
@@ -105,6 +111,13 @@ def parse_arguments():
         help="Logging level (default: INFO)"
     )
     
+    parser.add_argument(
+        "--use-direct-merge",
+        action="store_true",
+        default=False,
+        help="Use the direct merge functionality from kraken_tools (default: False)"
+    )
+    
     return parser.parse_args()
 
 def load_config(config_path):
@@ -112,46 +125,59 @@ def load_config(config_path):
         config = yaml.safe_load(file)
     return config
 
-def load_kraken_file(filepath, logger):
-    """Load a single Kraken report file."""
+def load_kraken_file(filepath, logger, taxonomic_level='S'):
+    """
+    Load a single Kraken report or Bracken file.
+    
+    Args:
+        filepath: Path to the Kraken or Bracken file
+        logger: Logger instance
+        taxonomic_level: Taxonomic level to extract (default: 'S' for species)
+        
+    Returns:
+        DataFrame with species and abundance information for the sample
+    """
     try:
-        # Determine columns based on file type
+        # Determine file type based on extension
+        sample_id = os.path.basename(filepath).split('.')[0]
+        
         if filepath.endswith('.kreport'):
-            # Kraken2 report format
-            df = pd.read_csv(filepath, sep='\t', header=None)
-            if len(df.columns) >= 6:
-                df.columns = ['percentage', 'clade_reads', 'taxon_reads', 'rank', 'taxid', 'name']
-                # Filter by taxonomic rank (S for species)
-                df = df[df['rank'] == 'S'].copy()
-                # Extract sample ID from filename
-                sample_id = os.path.basename(filepath).split('.')[0]
-                # Standardize names and create result dataframe
-                df['name'] = df['name'].apply(lambda x: standardize_species_name(x.strip()))
-                result_df = df[['name', 'taxon_reads']].copy()
+            # Use the new read_kraken_report function from kraken_tools
+            df = read_kraken_report(filepath, taxonomic_level, logger)
+            
+            if df is not None:
+                # Standardize names
+                df['taxon_name'] = df['taxon_name'].apply(standardize_species_name)
+                
+                # Create result dataframe with the taxon reads (use actual read counts)
+                result_df = df[['taxon_name', 'taxon_reads']].copy()
                 result_df.columns = ['Species', sample_id]
                 return result_df
             else:
-                logger.warning(f"Not enough columns in file {filepath}")
+                logger.warning(f"Unable to read Kraken report file {filepath}")
                 return None
                 
         elif filepath.endswith('.bracken'):
-            # Bracken format
-            df = pd.read_csv(filepath, sep='\t')
-            # Extract sample ID from filename
-            sample_id = os.path.basename(filepath).split('.')[0]
-            # Standardize species names
-            df['name'] = df['name'].apply(standardize_species_name)
-            # Create result dataframe
-            result_df = df[['name', 'new_est_reads']].copy()
-            result_df.columns = ['Species', sample_id]
-            return result_df
+            # Use the new read_bracken_abundance_file function from kraken_tools
+            df = read_bracken_abundance_file(filepath, logger)
+            
+            if df is not None:
+                # Standardize names
+                df['taxon_name'] = df['taxon_name'].apply(standardize_species_name)
+                
+                # Create result dataframe with the breads (use breads count instead of percentage)
+                result_df = df[['taxon_name', 'breads']].copy()
+                result_df.columns = ['Species', sample_id]
+                return result_df
+            else:
+                logger.warning(f"Unable to read Bracken file {filepath}")
+                return None
             
         else:
             # Try generic format
             df = pd.read_csv(filepath, sep='\t')
             if 'name' in df.columns and len(df.columns) >= 6:
                 # Extract sample ID from filename
-                sample_id = os.path.basename(filepath).split('.')[0]
                 # Standardize species names
                 df['name'] = df['name'].apply(standardize_species_name)
                 # Create result dataframe with the 6th column (assumed to be read counts)
@@ -193,16 +219,29 @@ def merge_abundance_data(file_dfs, logger):
     return merged_df
 
 def filter_abundance_data(abundance_df, min_abundance, min_prevalence, logger):
-    """Filter abundance data based on minimum abundance and prevalence."""
+    """
+    Filter abundance data based on minimum abundance and prevalence.
+    Works with raw read count data by converting to relative abundance for filtering.
+    
+    Args:
+        abundance_df: DataFrame with abundance data (raw read counts)
+        min_abundance: Minimum relative abundance threshold
+        min_prevalence: Minimum prevalence threshold
+        logger: Logger instance
+        
+    Returns:
+        Filtered abundance DataFrame (still raw read counts)
+    """
     logger.info(f"Filtering with min_abundance={min_abundance}, min_prevalence={min_prevalence}")
     
     # Get only the abundance columns (excluding Species)
     abundance_cols = [col for col in abundance_df.columns if col != 'Species']
     
-    # Calculate total reads per sample for relative abundance
+    # Calculate total reads per sample
     sample_totals = abundance_df[abundance_cols].sum()
+    logger.info(f"Sample read count stats: min={sample_totals.min()}, max={sample_totals.max()}, mean={sample_totals.mean():.1f}")
     
-    # Create a copy with relative abundances
+    # Create a copy with relative abundances (for filtering purposes)
     rel_abundance_df = abundance_df.copy()
     for col in abundance_cols:
         if sample_totals[col] > 0:
@@ -246,23 +285,62 @@ def merge_with_metadata(abundance_df, metadata_file, logger):
         return None
 
 def perform_normalization(abundance_df, method, output_file, logger):
-    """Apply normalization to the abundance data"""
+    """
+    Apply normalization to the abundance data using the updated normalize_abundance function.
+    Handles different normalization methods for read count data.
+    
+    Args:
+        abundance_df: DataFrame with abundance data (assumes read counts, not percentages)
+        method: Normalization method ('relabundance', 'cpm', 'log10', 'clr')
+        output_file: Path to save normalized data
+        logger: Logger instance
+        
+    Returns:
+        Normalized DataFrame
+    """
     # First, create a copy of the dataframe with Species as index
     abundance_for_norm = abundance_df.copy()
     abundance_for_norm.set_index('Species', inplace=True)
+    
+    # For CLR transformation, we need to make sure we have non-zero values
+    # Add pseudocount of 1 to avoid issues with zeros in the data
+    if method == 'clr':
+        logger.info("Adding pseudocount of 1 to abundance data before CLR transformation")
+        abundance_for_norm = abundance_for_norm + 1
     
     # Convert to format expected by normalize_abundance function
     temp_file = output_file.replace('.tsv', '_temp.tsv')
     abundance_for_norm.to_csv(temp_file, sep='\t')
     
-    # Apply normalization
+    # Apply normalization using the updated function
     try:
-        normalized_file = normalize_abundance(
-            abundance_file=temp_file,
-            output_file=output_file,
-            method=method,
-            logger=logger
-        )
+        # Note: Our data is now raw read counts, not percentages
+        # This requires adjustment in how we approach normalization
+        
+        if method == 'relabundance':
+            logger.info("Converting read counts to relative abundance")
+            # Calculate column sums for normalization
+            col_sums = abundance_for_norm.sum(axis=0)
+            # Normalize by column sum to get relative abundance (0-1)
+            norm_df = abundance_for_norm.div(col_sums, axis=1)
+            norm_df.to_csv(output_file, sep='\t')
+            normalized_file = output_file
+        elif method == 'cpm':
+            logger.info("Normalizing to counts per million")
+            # Calculate column sums
+            col_sums = abundance_for_norm.sum(axis=0)
+            # Normalize to counts per million
+            norm_df = abundance_for_norm.div(col_sums, axis=1) * 1000000
+            norm_df.to_csv(output_file, sep='\t')
+            normalized_file = output_file
+        else:
+            # For log10 and clr transformations, use the library function
+            normalized_file = normalize_abundance(
+                abundance_file=temp_file,
+                output_file=output_file,
+                method=method,
+                logger=logger
+            )
         
         # Read back the normalized data and add the Species column back as a regular column
         normalized_df = pd.read_csv(normalized_file, sep='\t', index_col=0)
@@ -318,6 +396,8 @@ def main():
     
     # Process Kraken2 reports if provided
     kraken_dfs = []
+    kraken_files_dict = {}
+    
     if args.kreport_dir:
         log_print(f"Processing Kraken2 reports from {args.kreport_dir}", level="info")
         kraken_files = glob.glob(os.path.join(args.kreport_dir, f"*.{args.taxonomic_level}.kreport"))
@@ -329,15 +409,27 @@ def main():
         
         log_print(f"Found {len(kraken_files)} Kraken2 report files", level="info")
         
+        # Create a dictionary of sample IDs to file paths
         for kraken_file in kraken_files:
-            df = load_kraken_file(kraken_file, logger)
+            sample_id = os.path.basename(kraken_file).split('.')[0]
+            kraken_files_dict[sample_id] = kraken_file
+        
+        # Option 1: Use our updated load_kraken_file function 
+        for kraken_file in kraken_files:
+            df = load_kraken_file(kraken_file, logger, args.taxonomic_level)
             if df is not None:
                 kraken_dfs.append(df)
+        
+        # Option 2: We could alternatively use merge_kraken_reports from the kraken_tools
+        # to directly merge all files, but we'll use Option 1 for compatibility
+        # with the rest of the code
         
         log_print(f"Successfully processed {len(kraken_dfs)} Kraken2 report files", level="info")
     
     # Process Bracken files if provided
     bracken_dfs = []
+    bracken_files_dict = {}
+    
     if args.bracken_dir:
         log_print(f"Processing Bracken files from {args.bracken_dir}", level="info")
         bracken_files = glob.glob(os.path.join(args.bracken_dir, f"*.{args.taxonomic_level}.bracken"))
@@ -349,32 +441,171 @@ def main():
         
         log_print(f"Found {len(bracken_files)} Bracken files", level="info")
         
+        # Create a dictionary of sample IDs to file paths
         for bracken_file in bracken_files:
-            df = load_kraken_file(bracken_file, logger)
+            sample_id = os.path.basename(bracken_file).split('.')[0]
+            bracken_files_dict[sample_id] = bracken_file
+            
+        # Option 1: Use our updated load_kraken_file function
+        for bracken_file in bracken_files:
+            df = load_kraken_file(bracken_file, logger, args.taxonomic_level)
             if df is not None:
                 bracken_dfs.append(df)
+                
+        # Option 2: We could alternatively use merge_bracken_files from kraken_tools
+        # to directly merge all files, but we'll use Option 1 for compatibility
+        # with the rest of the code
         
         log_print(f"Successfully processed {len(bracken_dfs)} Bracken files", level="info")
     
-    # Combine all dataframes
-    all_dfs = kraken_dfs + bracken_dfs
+    # Flag to determine which approach to use
+    use_direct_merge = args.use_direct_merge
     
-    if not all_dfs:
-        log_print("Error: No valid Kraken2 or Bracken files were processed", level="error")
-        sys.exit(1)
+    if use_direct_merge and (kraken_files_dict or bracken_files_dict):
+        # Use the new direct merge functionality if any dictionaries are populated
+        log_print("Using direct merge functionality from kraken_tools", level="info")
+        
+        merged_file = None
+        
+        # Process Kraken files directly if available
+        # Note: The default merge_kraken_reports uses percentage, but we want read counts
+        # We'll need to implement our own direct merge for Kraken that uses read counts
+        if kraken_files_dict:
+            log_print("Merging Kraken reports directly with read counts", level="info")
+            kraken_merged_file = os.path.join(args.output_dir, f"kraken_{args.taxonomic_level}_merged.tsv")
+            
+            # Create a dict to store abundance data by taxon
+            abundance_data = {}
+            
+            # Process each sample
+            for sample_id, file_path in kraken_files_dict.items():
+                log_print(f"Processing Kraken report for sample {sample_id}", level="info")
+                
+                # Read the Kraken report
+                kraken_df = read_kraken_report(file_path, args.taxonomic_level, logger)
+                if kraken_df is None:
+                    log_print(f"Skipping sample {sample_id} due to file reading error", level="warning")
+                    continue
+                
+                # Extract relevant columns - using taxon_reads instead of percentage
+                taxa = kraken_df['taxon_name'].apply(standardize_species_name).values
+                reads = kraken_df['taxon_reads'].values
+                
+                # Add to abundance dict
+                for taxon, read_count in zip(taxa, reads):
+                    if taxon not in abundance_data:
+                        abundance_data[taxon] = {}
+                    abundance_data[taxon][sample_id] = read_count
+            
+            if not abundance_data:
+                log_print("No valid data found in any Kraken report", level="error")
+                use_direct_merge = False
+                merged_file = None
+            else:
+                # Convert to DataFrame
+                merged_df_temp = pd.DataFrame(abundance_data).T
+                
+                # Fill missing values with 0
+                merged_df_temp = merged_df_temp.fillna(0)
+                
+                # Save to file
+                try:
+                    os.makedirs(os.path.dirname(kraken_merged_file), exist_ok=True)
+                    merged_df_temp.to_csv(kraken_merged_file, sep='\t')
+                    log_print(f"Merged Kraken report data saved to {kraken_merged_file}", level="info")
+                    merged_file = kraken_merged_file
+                except Exception as e:
+                    log_print(f"Error saving merged Kraken data: {str(e)}", level="error")
+                    use_direct_merge = False
+                    merged_file = None
+        
+        # Process Bracken files directly if available
+        # Similar to Kraken, we need to implement our own direct merge for Bracken to use read counts
+        elif bracken_files_dict:
+            log_print("Merging Bracken files directly with read counts", level="info")
+            bracken_merged_file = os.path.join(args.output_dir, f"bracken_{args.taxonomic_level}_merged.tsv")
+            
+            # Create a dict to store abundance data by taxon
+            abundance_data = {}
+            
+            # Process each sample
+            for sample_id, file_path in bracken_files_dict.items():
+                log_print(f"Processing Bracken file for sample {sample_id}", level="info")
+                
+                # Read the Bracken file
+                bracken_df = read_bracken_abundance_file(file_path, logger)
+                if bracken_df is None:
+                    log_print(f"Skipping sample {sample_id} due to file reading error", level="warning")
+                    continue
+                
+                # Extract relevant columns - using breads (read counts) instead of breads_percentage
+                taxa = bracken_df['taxon_name'].apply(standardize_species_name).values
+                reads = bracken_df['breads'].values
+                
+                # Add to abundance dict
+                for taxon, read_count in zip(taxa, reads):
+                    if taxon not in abundance_data:
+                        abundance_data[taxon] = {}
+                    abundance_data[taxon][sample_id] = read_count
+            
+            if not abundance_data:
+                log_print("No valid data found in any Bracken file", level="error")
+                use_direct_merge = False
+                merged_file = None
+            else:
+                # Convert to DataFrame
+                merged_df_temp = pd.DataFrame(abundance_data).T
+                
+                # Fill missing values with 0
+                merged_df_temp = merged_df_temp.fillna(0)
+                
+                # Save to file
+                try:
+                    os.makedirs(os.path.dirname(bracken_merged_file), exist_ok=True)
+                    merged_df_temp.to_csv(bracken_merged_file, sep='\t')
+                    log_print(f"Merged Bracken data saved to {bracken_merged_file}", level="info")
+                    merged_file = bracken_merged_file
+                except Exception as e:
+                    log_print(f"Error saving merged Bracken data: {str(e)}", level="error")
+                    use_direct_merge = False
+                    merged_file = None
+        
+        # If we successfully merged files directly
+        if use_direct_merge and merged_file:
+            # Read the merged file
+            merged_df = pd.read_csv(merged_file, sep='\t', index_col=0)
+            # Add 'Species' column by creating a new DataFrame with index as column
+            merged_df = merged_df.reset_index().rename(columns={'index': 'Species'})
+            
+            # Save raw abundance data (for consistency with the traditional approach)
+            raw_abundance_file = os.path.join(args.output_dir, "raw_abundance.tsv")
+            merged_df.to_csv(raw_abundance_file, sep='\t', index=False)
+            log_print(f"Raw abundance data saved to {raw_abundance_file}", level="info")
+        else:
+            # If direct merge failed, fall back to the traditional approach
+            use_direct_merge = False
     
-    # Merge abundance data
-    log_print("Merging abundance data", level="info")
-    merged_df = merge_abundance_data(all_dfs, logger)
-    
-    if merged_df is None:
-        log_print("Error: Failed to merge abundance data", level="error")
-        sys.exit(1)
-    
-    # Save raw abundance data
-    raw_abundance_file = os.path.join(args.output_dir, "raw_abundance.tsv")
-    merged_df.to_csv(raw_abundance_file, sep='\t', index=False)
-    log_print(f"Raw abundance data saved to {raw_abundance_file}", level="info")
+    # If not using direct merge or it failed, use the traditional approach
+    if not use_direct_merge:
+        # Combine all dataframes
+        all_dfs = kraken_dfs + bracken_dfs
+        
+        if not all_dfs:
+            log_print("Error: No valid Kraken2 or Bracken files were processed", level="error")
+            sys.exit(1)
+        
+        # Merge abundance data
+        log_print("Merging abundance data using traditional approach", level="info")
+        merged_df = merge_abundance_data(all_dfs, logger)
+        
+        if merged_df is None:
+            log_print("Error: Failed to merge abundance data", level="error")
+            sys.exit(1)
+        
+        # Save raw abundance data
+        raw_abundance_file = os.path.join(args.output_dir, "raw_abundance.tsv")
+        merged_df.to_csv(raw_abundance_file, sep='\t', index=False)
+        log_print(f"Raw abundance data saved to {raw_abundance_file}", level="info")
     
     # Filter abundance data
     log_print("Filtering abundance data", level="info")

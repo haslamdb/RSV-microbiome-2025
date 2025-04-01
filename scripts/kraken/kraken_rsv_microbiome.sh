@@ -9,7 +9,7 @@ for f in $files; do
     echo "Processing sample ${f} with Kraken2..."
     
     # Run Kraken2 with paired-end reads
-    /usr/local/Kraken2_Old/kraken2 --paired \
+    kraken2 --paired \
         --threads 12 \
 	--gzip-compressed \
         --db ~/Databases/KrakenPlusPF \

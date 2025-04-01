@@ -1,0 +1,6 @@
+2025-04-01 09:11:37,968 - INFO - Starting Kraken/Bracken data processing
+2025-04-01 09:11:37,971 - INFO - Loaded configuration from /home/david/Documents/Code/RSV-microbiome-2025/config/analysis_parameters.yml
+2025-04-01 09:11:37,972 - INFO - Processing Kraken2 reports from /home/david/Documents/Alignments/KrakenAlignments/KrakenNew
+2025-04-01 09:11:37,978 - INFO - Found 948 Kraken2 report files
+2025-04-01 09:11:41,860 - INFO - Successfully processed 948 Kraken2 report files
+2025-04-01 09:11:41,860 - INFO - Merging abundance data
