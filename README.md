@@ -139,19 +139,26 @@ python scripts/metaphlan/05_generate_report.py
 # Run Kraken2 and Bracken on raw sequencing data
 ./scripts/kraken/kraken_rsv_microbiome.sh
 
-# Process Kraken data and perform analyses
-python scripts/kraken/01_process_kraken_data.py
-python scripts/kraken/02_kraken_differential_abundance.py
-python scripts/kraken/03_generate_kraken_report.py
-python scripts/kraken/04_cooccurence_analysis.py
+# Process Kraken data and run all analyses with a single command
+./scripts/kraken/run_all_analyses.sh --kreport-dir path/to/kreports --bracken-dir path/to/bracken
+
+# Or run individual analysis steps
+python scripts/kraken/process_kraken_data.py --kreport-dir path/to/kreports --bracken-dir path/to/bracken
+python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
+python scripts/kraken/kraken_permanova.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
+python scripts/kraken/kraken_rf_shap.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
+python scripts/kraken/kraken_tsne.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
 ```
 
 The Kraken/Bracken workflow includes:
 1. **Data Processing**: Run Kraken2/Bracken on raw reads and process outputs
-2. **Diversity Analysis**: Calculate alpha and beta diversity metrics
-3. **Differential Abundance**: Identify differentially abundant taxa between groups
-4. **Co-occurrence Analysis**: Study relationships between specific species (e.g., S. pneumoniae and H. influenzae)
-5. **Report Generation**: Create comprehensive reports with visualizations
+2. **Data Normalization**: Apply CLR (centered log-ratio) or other normalization methods to the abundance data
+3. **Diversity Analysis**: Calculate alpha and beta diversity metrics
+4. **Differential Abundance**: Identify differentially abundant taxa between groups
+5. **PERMANOVA Analysis**: Test for significant associations between metadata variables and microbiome composition
+6. **Random Forest with SHAP**: Identify important taxa for predicting clinical outcomes
+7. **t-SNE Visualization**: Create dimensionality-reduced visualizations of microbiome data
+8. **Co-occurrence Analysis**: Study relationships between specific species
 
 ### Sylph Analysis
 
@@ -222,6 +229,35 @@ Track changes in the microbiome over the course of RSV infection:
 
 ## Advanced Features
 
+### Data Normalization
+
+The Kraken/Bracken workflow includes several normalization methods to transform abundance data for statistical analysis:
+
+```bash
+# Apply CLR normalization (default)
+./scripts/kraken/run_all_analyses.sh --kreport-dir path/to/kreports --norm-method clr
+
+# Apply relative abundance normalization (0-1 scale)
+./scripts/kraken/run_all_analyses.sh --norm-method relabundance
+
+# Apply counts per million normalization
+./scripts/kraken/run_all_analyses.sh --norm-method cpm
+
+# Apply log10 transformation
+./scripts/kraken/run_all_analyses.sh --norm-method log10
+
+# Disable normalization
+./scripts/kraken/run_all_analyses.sh --no-normalize
+```
+
+Available normalization methods:
+- **CLR (Centered Log-Ratio)**: Handles compositional data by log-transforming after dividing by the geometric mean (default method)
+- **Relative Abundance**: Converts counts to proportions (0-1 scale)
+- **CPM (Counts Per Million)**: Scales data to counts per million
+- **Log10**: Log10 transformation with a small pseudocount to avoid log(0)
+
+The normalization is automatically applied after filtering and before all downstream analyses.
+
 ### Correlation Networks
 
 ```python
@@ -247,6 +283,42 @@ Extract and analyze taxonomy information:
 from kraken_tools.analysis.taxonomy import read_and_process_taxonomy
 from sylph_tools import add_taxonomy_metadata
 ```
+
+### PERMANOVA Analysis
+
+The Kraken workflow includes PERMANOVA (Permutational Multivariate Analysis of Variance) to test how metadata variables explain microbiome composition:
+
+```bash
+# Run PERMANOVA analysis with specific categorical variables
+python scripts/kraken/kraken_permanova.py --abundance-file results/kraken_analysis/normalized_abundance.tsv \
+  --categorical-vars Timing,Severity,Symptoms --distance-metric bray --transform clr
+```
+
+PERMANOVA helps identify which factors (e.g., disease severity, timing) significantly influence microbiome structure.
+
+### Random Forest with SHAP
+
+The RF-SHAP analysis combines Random Forest machine learning with SHAP (SHapley Additive exPlanations) values to identify the most important taxa for prediction:
+
+```bash
+# Run RF-SHAP analysis
+python scripts/kraken/kraken_rf_shap.py --abundance-file results/kraken_analysis/normalized_abundance.tsv \
+  --predictors Timing,Severity,Symptoms --random-effects SubjectID
+```
+
+This analysis helps identify which bacterial species are most predictive of clinical outcomes.
+
+### t-SNE Visualization
+
+The t-SNE (t-Distributed Stochastic Neighbor Embedding) visualization creates low-dimensional representations of the microbiome data:
+
+```bash
+# Generate t-SNE plots
+python scripts/kraken/kraken_tsne.py --abundance-file results/kraken_analysis/normalized_abundance.tsv \
+  --categorical-vars Timing,Severity,Symptoms
+```
+
+t-SNE helps visualize sample clustering and relationships between samples in different clinical groups.
 
 ## Contributing
 
