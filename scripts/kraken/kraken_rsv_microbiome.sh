@@ -1,17 +1,15 @@
 # This script runs Kraken2 and Bracken on RSV microbiome samples
 # Database is located at ~/Databases/KrakenPlusPF
 
-
 # Read sample list
 files=$(cat ~/Documents/Code/RSV-microbiome-2025/sample_list.txt)
 
-# Run Kraken2 and Bracken on all samples
+# Run Kraken2 and Bracken on all samples. I can't get new Kraken2 versions to run, so going with the older version
 for f in $files; do
     echo "Processing sample ${f} with Kraken2..."
     
     # Run Kraken2 with paired-end reads
-    k2 classify --paired \
-	--gzip-compressed \
+    /usr/local/Kraken2_Old/kraken2 --paired \
         --threads 12 \
         --db ~/Databases/KrakenPlusPF \
         --output ~/Documents/Alignments/KrakenAlignments/KrakenNew/${f}.kraken \
