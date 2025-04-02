@@ -965,8 +965,57 @@ def main():
     # Load abundance data
     print("\n1. Loading abundance data")
     if os.path.exists(args.input_file):
-        abundance_df = pd.read_csv(args.input_file, sep='\t', index_col=0)
-        print(f"Loaded abundance data with {len(abundance_df.index)} taxa and {len(abundance_df.columns)} samples")
+        # First read data without setting the index to determine its format
+        raw_data = pd.read_csv(args.input_file, sep='\t')
+        
+        # Check if the data contains metadata columns
+        metadata_cols = ['SampleID', 'SubjectID', 'CollectionDate', 'Timing', 'Severity', 'Symptoms']
+        has_metadata_cols = any(col in raw_data.columns for col in metadata_cols)
+        
+        if has_metadata_cols:
+            print("Detected metadata columns in abundance file. Data appears to be in samples-as-rows format.")
+            print("Transposing data to get taxa-as-rows format required for analysis...")
+            
+            # Identify which metadata columns are present
+            present_metadata_cols = [col for col in metadata_cols if col in raw_data.columns]
+            
+            # Extract metadata
+            metadata = raw_data[present_metadata_cols].copy()
+            
+            # Extract abundance data
+            abundance_cols = [col for col in raw_data.columns if col not in present_metadata_cols]
+            abundance = raw_data[abundance_cols]
+            
+            # Transpose abundance data (taxa as rows, samples as columns)
+            transposed = abundance.T
+            transposed.columns = raw_data['SampleID'] if 'SampleID' in raw_data.columns else raw_data.index
+            transposed.index.name = 'Species'
+            
+            # Use the transposed data
+            abundance_df = transposed
+            print(f"Successfully transposed data: now has {len(abundance_df.index)} taxa as rows and {len(abundance_df.columns)} samples as columns")
+        else:
+            # Data is likely already in the correct format or has a non-standard structure
+            abundance_df = pd.read_csv(args.input_file, sep='\t', index_col=0)
+            
+            # Check if data appears to be in the expected format
+            likely_taxa_patterns = ['species', 'genus', 'family', 'order', 'class', 'phylum', 'kingdom', 'domain',
+                          'streptococcus', 'haemophilus', 'staphylococcus', 'moraxella', 'corynebacterium',
+                          'bacteria', 'virus', 'fungi', 'bacteroides', 'bifidobacterium', 'escherichia']
+            
+            # Check if index entries contain species names with dots (e.g., "Streptococcus.pneumoniae")
+            first_indices = abundance_df.index[:5].astype(str)
+            lower_indices = [idx.lower() for idx in first_indices]
+            
+            # Look for taxonomy patterns or Species-like entries
+            has_taxonomy_pattern = any(any(taxon in idx for taxon in likely_taxa_patterns) for idx in lower_indices)
+            has_species_dot_format = any('.' in idx for idx in first_indices)
+            
+            if has_taxonomy_pattern or has_species_dot_format:
+                print(f"Data appears to be in the correct format with {len(abundance_df.index)} taxa and {len(abundance_df.columns)} samples")
+            else:
+                print("WARNING: Data format unclear. Attempting to proceed, but results may not be as expected.")
+                print("Ideal format: Taxa as rows, samples as columns. Current shape:", abundance_df.shape)
     else:
         print(f"Error: Input file not found at {args.input_file}")
         return

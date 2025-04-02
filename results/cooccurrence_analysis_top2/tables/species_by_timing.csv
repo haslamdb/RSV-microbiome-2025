@@ -1,0 +1,3 @@
+,taxon,variable,test,statistic,p-value,mean_Prior,mean_Acute,mean_Post,species_name
+0,Dolosigranulum.pigrum,Timing,Kruskal-Wallis,5.058594901636752,0.07971500432887792,2.763956407362773,2.5829493202734524,1.636174511808341,Dolosigranulum.pigrum
+1,Moraxella.nonliquefaciens,Timing,Kruskal-Wallis,2.218969488011453,0.32972881205996085,3.232409975046336,3.329536087667145,2.605746340273533,Moraxella.nonliquefaciens

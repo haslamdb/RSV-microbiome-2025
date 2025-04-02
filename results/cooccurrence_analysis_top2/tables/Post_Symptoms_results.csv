@@ -1,0 +1,3 @@
+,taxon,variable,test,statistic,p-value,mean_Mild,mean_Asymptomatic,mean_Severe,species_name,time_point
+0,Dolosigranulum.pigrum,Symptoms,Kruskal-Wallis,4.757867780847761,0.09264929918201174,1.1302973391075206,2.888979383906678,1.4430873904293031,Dolosigranulum.pigrum,Post
+1,Moraxella.nonliquefaciens,Symptoms,Kruskal-Wallis,2.3749241862659005,0.30499432987144753,2.879743115998426,2.6575240418988217,0.9757920324265548,Moraxella.nonliquefaciens,Post

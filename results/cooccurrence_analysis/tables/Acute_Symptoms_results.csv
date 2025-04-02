@@ -1,0 +1,3 @@
+,taxon,variable,test,statistic,p-value,mean_Mild,mean_Severe,mean_Asymptomatic,species_name,time_point
+0,Streptococcus.pneumoniae,Symptoms,Kruskal-Wallis,2.6597269544650715,0.26451337093230537,3.4061986786050493,3.6248940610110565,2.4589846187194526,Streptococcus.pneumoniae,Acute
+1,Haemophilus.influenzae,Symptoms,Kruskal-Wallis,1.6422825412436737,0.43992928951951216,1.3246615345368402,1.6952282783502297,2.179030041712858,Haemophilus.influenzae,Acute

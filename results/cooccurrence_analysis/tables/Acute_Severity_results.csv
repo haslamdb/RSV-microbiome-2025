@@ -1,0 +1,3 @@
+,taxon,variable,test,statistic,p-value,mean_1,mean_2,mean_4,mean_3,mean_0,species_name,time_point
+0,Streptococcus.pneumoniae,Severity,Kruskal-Wallis,3.57320526345012,0.4668349674132035,3.84629678169646,3.1506578445519717,5.746122059951829,3.389202061128749,2.4589846187194526,Streptococcus.pneumoniae,Acute
+1,Haemophilus.influenzae,Severity,Kruskal-Wallis,3.6805355060795932,0.4509632510443623,1.2885407384595566,1.3456349000010692,6.424720273915296,1.1697291677318893,2.179030041712858,Haemophilus.influenzae,Acute
