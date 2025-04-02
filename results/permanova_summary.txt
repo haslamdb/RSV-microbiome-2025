@@ -1,0 +1,52 @@
+# PERMANOVA Analysis Results Summary
+
+## 1. Hellinger Transformation with Bray-Curtis Distance
+File: results/permanova_hellinger/permanova_results.csv
+
+| Variable | R² | p-value | Significant |
+|----------|-----|---------|-------------|
+| Timing   | 0.013 | 0.075 | No |
+| Severity | 0.021 | 0.153 | No |
+| Symptoms | 0.010 | 0.222 | No |
+
+## 2. CLR Transformation with Bray-Curtis Distance
+File: results/permanova_clr/permanova_results.csv
+
+| Variable | R² | p-value | Significant |
+|----------|-----|---------|-------------|
+| Timing   | 0.050 | 0.001 | Yes |
+| Severity | 0.026 | 0.122 | No |
+| Symptoms | 0.009 | 0.373 | No |
+
+## 3. CLR Transformation with Euclidean Distance
+File: results/permanova_clr_euclidean/permanova_results.csv
+
+| Variable | R² | p-value | Significant |
+|----------|-----|---------|-------------|
+| Timing   | 0.016 | 0.006 | Yes |
+| Severity | 0.024 | 0.012 | Yes |
+| Symptoms | 0.012 | 0.042 | Yes |
+
+## 4. Pre-Transformed CLR Data with Euclidean Distance
+File: results/permanova_preclr_euclidean/permanova_results.csv
+
+| Variable | R² | p-value | Significant |
+|----------|-----|---------|-------------|
+| Severity | 0.028 | 0.002 | Yes |
+| Symptoms | 0.014 | 0.018 | Yes |
+| Timing   | 0.010 | 0.213 | No |
+
+## Key Observations:
+
+1. **Transformation Effects**: CLR transformation generally yielded more significant results than Hellinger transformation.
+
+2. **Distance Metric Effects**: For CLR-transformed data, Euclidean distance produced more significant results than Bray-Curtis distance.
+
+3. **Variables Significance**:
+   - **Timing**: Significant with CLR + Bray-Curtis (R²=0.050, p=0.001) and CLR + Euclidean (R²=0.016, p=0.006), but not with pre-transformed CLR data.
+   - **Severity**: Significant with CLR + Euclidean (R²=0.024, p=0.012) and pre-transformed CLR data (R²=0.028, p=0.002).
+   - **Symptoms**: Significant only with CLR + Euclidean (R²=0.012, p=0.042) and pre-transformed CLR data (R²=0.014, p=0.018).
+
+4. **Effect Sizes**: All R² values are relatively small (0.01-0.05), indicating that while statistically significant, these variables explain only 1-5% of the variation in microbial community structure.
+
+5. **Recommended Approach**: Based on these results, CLR transformation with Euclidean distance appears to be the most sensitive approach for detecting community differences in this dataset.

@@ -1,0 +1,4 @@
+Variable,R2,p_value,Significant,n_samples
+Timing,0.05039829861275445,0.001,Yes,237
+Severity,0.025890221842028324,0.122,No,237
+Symptoms,0.008789922505309166,0.373,No,237

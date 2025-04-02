@@ -1,0 +1,11 @@
+Random Forest Model Summary
+==========================
+
+R² score: 0.0009
+RMSE: 0.1668
+MAE: 0.1333
+
+Top 10 features:
+  Severity: 0.3902
+  Timing: 0.3750
+  Symptoms: 0.2348
