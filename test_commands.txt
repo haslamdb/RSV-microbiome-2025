@@ -35,33 +35,51 @@ The output of the process_kraken_data.py script are deposited in the results/kra
   - human_filtered_abundance.tsv: Data after filtering human reads
   - filtered_S_abundance.tsv: Data after filtering by abundance/prevalence thresholds
   - normalized_clr_S_abundance.tsv: The CLR-normalized data
-  - normalized_abundance.tsv: Same as above (for compatibility)
-  - abundance_with_metadata.tsv: The abundance data merged with sample metadata
+  - normalized_abundance_with_metadata.tsv: The abundance data merged with sample metadata
 
 # differential abundance
 # use metadata
-python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/abundance_with_metadata.tsv --group-col Symptoms --method kruskal --output-dir results/differential_abundance/symptoms --p-threshold 0.1
+python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/normalized_clr_abundance_with_metadata.tsv --group-col Symptoms --method kruskal --output-dir results/differential_abundance/symptoms --p-threshold 0.1
 
-python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/abundance_with_metadata.tsv --group-col Severity --method kruskal --output-dir results/differential_abundance/severity --p-threshold 0.1
+python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/normalized_clr_abundance_with_metadata.tsv --group-col Severity --method kruskal --output-dir results/differential_abundance/severity --p-threshold 0.1
 
-python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/abundance_with_metadata.tsv --group-col Timing --method kruskal --output-dir results/differential_abundance/timing --p-threshold 0.1
+python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/normalized_clr_abundance_with_metadata.tsv --group-col Timing --method kruskal --output-dir results/differential_abundance/timing --p-threshold 0.1
 
 
-# no use of metadata 
+# use --group-col instead of metadata 
   python scripts/kraken/kraken_differential_abundance.py --abundance-file
   results/kraken_analysis/normalized_clr_S_abundance.tsv --group-col Timing --method kruskal --output-dir
   results/differential_abundance/timing
 
 
 ## co-occurrence analysis
-  python scripts/kraken/04_cooccurence_analysis.py \
+  python scripts/kraken/cooccurence_analysis.py \
       --input-file results/kraken_analysis/normalized_clr_abundance_with_metadata.tsv \
       --metadata metadata.csv \
       --output-dir results/cooccurrence_analysis_custom \
       --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" 
 
-  python scripts/kraken/04_cooccurence_analysis.py \
+  python scripts/kraken/cooccurence_analysis.py \
       --input-file results/kraken_analysis/normalized_clr_abundance_with_metadata.tsv \
       --metadata metadata.csv \
       --output-dir results/cooccurrence_analysis_custom \
       --target-species "Streptococcus.pneumoniae" "Moraxella.catarrhalis" 
+
+
+## Permanova
+## this gives the most sig results (clr transform and Euclidean distance)
+python scripts/kraken/kraken_permanova.py --abundance-file processed_data/filtered_S_abundance.tsv --metadata metadata.csv --output-dir results/permanova_test --transform clr --distance-metric euclidean --categorical-vars Timing,Severity,Symptoms --permutations 999 
+
+
+# feature selection (this gets the importance of clinical variables to microbiome variation)
+python /home/david/Documents/Code/RSV-microbiome-2025/scripts/kraken/feature_selection.py --abundance-file                        …
+      /home/david/Documents/Code/RSV-microbiome-2025/processed_data/filtered_S_abundance.tsv --metadata
+      /home/david/Documents/Code/RSV-microbiome-2025/metadata.csv --output-dir
+      /home/david/Documents/Code/RSV-microbiome-2025/results/feature_selection_rsv --predictors Timing,Severity,Symptoms --transform clr
+      --distance-metric euclidean)
+
+# inverse feature selection. This is kind of irrelevant.
+  python scripts/kraken/kraken_rf_shap.py --abundance-file processed_data/filtered_S_abundance.tsv --metadata metadata.csv --output-dir
+  results/rf_shap_analysis --transform clr --predictors Timing,Severity,Symptoms --random-effects SubjectID --n-estimators 100 --top-n 20
+
+#
