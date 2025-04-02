@@ -456,13 +456,14 @@ def merge_abundance_data(file_dfs, logger):
     
     return merged_df
 
-def filter_human_reads(abundance_df, logger):
+def filter_human_reads(abundance_df, logger, taxonomic_level='S'):
     """
     Filter out human genome reads from abundance data.
     
     Args:
         abundance_df: DataFrame with abundance data (raw read counts)
         logger: Logger instance
+        taxonomic_level: Taxonomic level of the data (default: 'S' for species)
         
     Returns:
         Filtered abundance DataFrame with human reads removed
@@ -475,8 +476,17 @@ def filter_human_reads(abundance_df, logger):
     # Create copy of the dataframe
     filtered_df = abundance_df.copy()
     
-    # Filter out Homo sapiens (species level) and Homo (genus level)
-    human_patterns = ['Homo sapiens', 'Homo']
+    # Set human patterns based on taxonomic level
+    if taxonomic_level == 'S':
+        human_patterns = ['Homo sapiens']
+        logger.info("Using species-level filter: 'Homo sapiens'")
+    elif taxonomic_level == 'G':
+        human_patterns = ['Homo']
+        logger.info("Using genus-level filter: 'Homo'")
+    else:
+        human_patterns = ['Homo sapiens', 'Homo']
+        logger.info("Using default filters: 'Homo sapiens', 'Homo'")
+    
     human_taxa = []
     
     for pattern in human_patterns:
