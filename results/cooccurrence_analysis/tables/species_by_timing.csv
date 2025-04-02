@@ -1,3 +1,3 @@
-,taxon,variable,test,statistic,p-value,mean_Post,mean_Acute,mean_Prior,species_name
-0,Streptococcus.pneumoniae,Timing,Kruskal-Wallis,4.57561737306105,0.10148861172686006,2.4200853033235132,3.1586542977231917,2.548523535883572,Streptococcus.pneumoniae
-1,Haemophilus.influenzae,Timing,Kruskal-Wallis,3.8871612002528764,0.14319032349088676,0.6831912367436239,1.6163544455050127,0.8155782059357939,Haemophilus.influenzae
+taxon,variable,test,statistic,p-value,mean_Prior,mean_Acute,mean_Post,species_name
+Streptococcus.pneumoniae,Timing,Kruskal-Wallis,4.575617373,0.101488612,2.548523536,3.158654298,2.420085303,Streptococcus.pneumoniae
+Haemophilus.influenzae,Timing,Kruskal-Wallis,3.8871612,0.143190323,0.815578206,1.616354446,0.683191237,Haemophilus.influenzae

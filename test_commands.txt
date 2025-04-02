@@ -1,0 +1,67 @@
+kraken2 --db ~/Databases/Kraken2DB --threads 8 --report ~/Documents/Alignments/KrakenAlignments/Kraken2/3000885600-DNA.kreport --paired trimmed_read1_3000885600-DNA.fastq.gz trimmed_read2_3000885600-DNA.fastq.gz  > ~/Documents/Alignments/KrakenAlignments/Kraken2/3000885600-DNA.kraken
+
+
+
+    k2 classify --paired \
+        --threads 12 \
+        --db ~/Databases/KrakenPlusPF \
+        --classified-out ~/Documents/Alignments/KrakenAlignments/KrakenNew/3000885600-DNA.classified \
+        --log ~/Documents/Alignments/KrakenAlignments/KrakenNew/3000885600-DNA.log \
+        --output ~/Documents/Alignments/KrakenAlignments/KrakenNew/3000885600-DNA.kraken \
+        --report ~/Documents/Alignments/KrakenAlignments/KrakenNew/3000885600-DNA.kreport \
+        ~/Analysis/TrimmedMSSFiles/trimmed_read1_3000885600-DNA.fastq.gz \
+        ~/Analysis/TrimmedMSSFiles/trimmed_read2_3000885600-DNA.fastq.gz
+
+/usr/local/Kraken2_Old/kraken2 --paired \
+        --threads 12 \
+        --db ~/Databases/KrakenPlusPF \
+        --output ~/Documents/Alignments/KrakenAlignments/KrakenNew/3000885600-DNA.kraken \
+        --report ~/Documents/Alignments/KrakenAlignments/KrakenNew/3000885600-DNA.kreport \
+        ~/Analysis/TrimmedMSSFiles/trimmed_read1_3000885600-DNA.fastq.gz \
+        ~/Analysis/TrimmedMSSFiles/trimmed_read2_3000885600-DNA.fastq.gz
+
+
+## Process kraken data (join, filter, normalize)
+python scripts/kraken/process_kraken_data.py --config config/analysis_parameters.yml \
+	--bracken-dir ~/Documents/Alignments/KrakenAlignments/KrakenNew \
+	--metadata metadata.csv 
+
+
+
+The output of the process_kraken_data.py script are deposited in the results/kraken_analysis/ directory. The key
+  files generated include:
+
+  - raw_abundance.tsv: The unfiltered abundance data
+  - human_filtered_abundance.tsv: Data after filtering human reads
+  - filtered_S_abundance.tsv: Data after filtering by abundance/prevalence thresholds
+  - normalized_clr_S_abundance.tsv: The CLR-normalized data
+  - normalized_abundance.tsv: Same as above (for compatibility)
+  - abundance_with_metadata.tsv: The abundance data merged with sample metadata
+
+# differential abundance
+# use metadata
+python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/abundance_with_metadata.tsv --group-col Symptoms --method kruskal --output-dir results/differential_abundance/symptoms --p-threshold 0.1
+
+python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/abundance_with_metadata.tsv --group-col Severity --method kruskal --output-dir results/differential_abundance/severity --p-threshold 0.1
+
+python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/abundance_with_metadata.tsv --group-col Timing --method kruskal --output-dir results/differential_abundance/timing --p-threshold 0.1
+
+
+# no use of metadata 
+  python scripts/kraken/kraken_differential_abundance.py --abundance-file
+  results/kraken_analysis/normalized_clr_S_abundance.tsv --group-col Timing --method kruskal --output-dir
+  results/differential_abundance/timing
+
+
+## co-occurrence analysis
+  python scripts/kraken/04_cooccurence_analysis.py \
+      --input-file results/kraken_analysis/normalized_clr_abundance_with_metadata.tsv \
+      --metadata metadata.csv \
+      --output-dir results/cooccurrence_analysis_custom \
+      --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" 
+
+  python scripts/kraken/04_cooccurence_analysis.py \
+      --input-file results/kraken_analysis/normalized_clr_abundance_with_metadata.tsv \
+      --metadata metadata.csv \
+      --output-dir results/cooccurrence_analysis_custom \
+      --target-species "Streptococcus.pneumoniae" "Moraxella.catarrhalis" 
