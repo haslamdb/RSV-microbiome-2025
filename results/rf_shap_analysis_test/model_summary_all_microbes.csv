@@ -1,0 +1,15 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,5.485670632061902,0.8880683609680207,MixedLM,Anaerobutyricum.hallii
+C(Timing)[T.Post],-3.5130028880584887,0.9223081203180546,MixedLM,Anaerobutyricum.hallii
+C(Timing)[T.Prior],54.024637336376664,0.11584451086629947,MixedLM,Anaerobutyricum.hallii
+C(Symptoms)[T.Mild],-100.54816077406505,0.24410112611386425,MixedLM,Anaerobutyricum.hallii
+C(Symptoms)[T.Severe],-126.58808480021186,0.42165695770096834,MixedLM,Anaerobutyricum.hallii
+Severity,39.5012145929363,0.3965102352452474,MixedLM,Anaerobutyricum.hallii
+Group Var,0.20068896975640158,0.07497690575832816,MixedLM,Anaerobutyricum.hallii
+Intercept,-92.87976677175081,0.02515060016340899,MixedLM,Bradyrhizobium.septentrionale
+C(Timing)[T.Post],90.45816420048678,0.028272161000198363,MixedLM,Bradyrhizobium.septentrionale
+C(Timing)[T.Prior],117.1699430019151,0.002987820402560573,MixedLM,Bradyrhizobium.septentrionale
+C(Symptoms)[T.Mild],42.41503117858231,0.6339563400589379,MixedLM,Bradyrhizobium.septentrionale
+C(Symptoms)[T.Severe],-10.308358536776886,0.9494587743806481,MixedLM,Bradyrhizobium.septentrionale
+Severity,0.3965861814451978,0.9934157053527461,MixedLM,Bradyrhizobium.septentrionale
+Group Var,0.0960480479632203,0.26096561313749533,MixedLM,Bradyrhizobium.septentrionale

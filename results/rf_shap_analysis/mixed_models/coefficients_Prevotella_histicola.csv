@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-54.02941134634791,0.16715817672357192,MixedLM,Prevotella.histicola
+C(Timing)[T.Post],31.72185138580158,0.3957199144034427,MixedLM,Prevotella.histicola
+C(Timing)[T.Prior],53.98072125274136,0.13046638326894858,MixedLM,Prevotella.histicola
+C(Symptoms)[T.Mild],-11.328174377474797,0.8945601225540903,MixedLM,Prevotella.histicola
+C(Symptoms)[T.Severe],-4.539316880238181,0.9767918968742649,MixedLM,Prevotella.histicola
+Severity,24.588077144832745,0.5939555260515093,MixedLM,Prevotella.histicola
+Group Var,0.1510118354494241,0.12948936746971101,MixedLM,Prevotella.histicola

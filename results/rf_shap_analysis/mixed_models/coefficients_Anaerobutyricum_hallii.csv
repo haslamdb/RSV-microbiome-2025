@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,5.485670632061979,0.888068360968019,MixedLM,Anaerobutyricum.hallii
+C(Timing)[T.Post],-3.513002888058624,0.9223081203180516,MixedLM,Anaerobutyricum.hallii
+C(Timing)[T.Prior],54.02463733637657,0.11584451086630015,MixedLM,Anaerobutyricum.hallii
+C(Symptoms)[T.Mild],-100.54816077406304,0.24410112611386892,MixedLM,Anaerobutyricum.hallii
+C(Symptoms)[T.Severe],-126.58808480020828,0.4216569577009769,MixedLM,Anaerobutyricum.hallii
+Severity,39.50121459293513,0.3965102352452562,MixedLM,Anaerobutyricum.hallii
+Group Var,0.20068896975639955,0.07497690575832901,MixedLM,Anaerobutyricum.hallii

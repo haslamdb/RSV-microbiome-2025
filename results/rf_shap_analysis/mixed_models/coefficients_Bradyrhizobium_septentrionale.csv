@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-92.87976677175011,0.02515060016340918,MixedLM,Bradyrhizobium.septentrionale
+C(Timing)[T.Post],90.4581642004864,0.02827216100019904,MixedLM,Bradyrhizobium.septentrionale
+C(Timing)[T.Prior],117.16994300191469,0.0029878204025606835,MixedLM,Bradyrhizobium.septentrionale
+C(Symptoms)[T.Mild],42.41503117857972,0.6339563400589587,MixedLM,Bradyrhizobium.septentrionale
+C(Symptoms)[T.Severe],-10.30835853678071,0.9494587743806293,MixedLM,Bradyrhizobium.septentrionale
+Severity,0.39658618144614677,0.9934157053527304,MixedLM,Bradyrhizobium.septentrionale
+Group Var,0.09604804796321968,0.2609656131374969,MixedLM,Bradyrhizobium.septentrionale

@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-119.69102427247863,0.008457746179824786,MixedLM,Bradyrhizobium.elkanii
+C(Timing)[T.Post],103.57072184197631,0.019905025861380005,MixedLM,Bradyrhizobium.elkanii
+C(Timing)[T.Prior],135.43098737985514,0.001457756812470255,MixedLM,Bradyrhizobium.elkanii
+C(Symptoms)[T.Mild],117.97522464297036,0.23013122038922584,MixedLM,Bradyrhizobium.elkanii
+C(Symptoms)[T.Severe],100.84441306169744,0.57420850697634,MixedLM,Bradyrhizobium.elkanii
+Severity,-30.778049992783355,0.5617777491773253,MixedLM,Bradyrhizobium.elkanii
+Group Var,0.11708746790870042,0.19131000548215404,MixedLM,Bradyrhizobium.elkanii

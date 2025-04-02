@@ -1,0 +1,141 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-27.726644160394176,0.4170317734106389,MixedLM,Bradyrhizobium.sp.WBOS08
+C(Timing)[T.Post],60.57420252439332,0.09957929386224776,MixedLM,Bradyrhizobium.sp.WBOS08
+C(Timing)[T.Prior],36.20178978771441,0.30507445225446794,MixedLM,Bradyrhizobium.sp.WBOS08
+C(Symptoms)[T.Mild],-48.19023607787157,0.4933787959229222,MixedLM,Bradyrhizobium.sp.WBOS08
+C(Symptoms)[T.Severe],-116.43981159163616,0.3650638285794341,MixedLM,Bradyrhizobium.sp.WBOS08
+Severity,29.46234585027945,0.4376116042578271,MixedLM,Bradyrhizobium.sp.WBOS08
+Group Var,2.1060841762458725e-09,0.9999999777263396,MixedLM,Bradyrhizobium.sp.WBOS08
+Intercept,-45.628593837001496,0.22114260306767097,MixedLM,Bifidobacterium.bifidum
+C(Timing)[T.Post],23.520134463514808,0.5535011448248562,MixedLM,Bifidobacterium.bifidum
+C(Timing)[T.Prior],8.95407469992688,0.8140573230602169,MixedLM,Bifidobacterium.bifidum
+C(Symptoms)[T.Mild],-20.344662526450556,0.7924594949981885,MixedLM,Bifidobacterium.bifidum
+C(Symptoms)[T.Severe],-81.3651341073617,0.5646367451697882,MixedLM,Bifidobacterium.bifidum
+Severity,42.61830354341919,0.30695446020068307,MixedLM,Bifidobacterium.bifidum
+Group Var,0.013018889074426485,0.8502235635394465,MixedLM,Bifidobacterium.bifidum
+Intercept,5.485670632061979,0.888068360968019,MixedLM,Anaerobutyricum.hallii
+C(Timing)[T.Post],-3.513002888058624,0.9223081203180516,MixedLM,Anaerobutyricum.hallii
+C(Timing)[T.Prior],54.02463733637657,0.11584451086630015,MixedLM,Anaerobutyricum.hallii
+C(Symptoms)[T.Mild],-100.54816077406304,0.24410112611386892,MixedLM,Anaerobutyricum.hallii
+C(Symptoms)[T.Severe],-126.58808480020828,0.4216569577009769,MixedLM,Anaerobutyricum.hallii
+Severity,39.50121459293513,0.3965102352452562,MixedLM,Anaerobutyricum.hallii
+Group Var,0.20068896975639955,0.07497690575832901,MixedLM,Anaerobutyricum.hallii
+Intercept,-15.876244047295177,0.726962480115775,MixedLM,Chryseobacterium.indologenes
+C(Timing)[T.Post],44.64396212754765,0.23220785407519584,MixedLM,Chryseobacterium.indologenes
+C(Timing)[T.Prior],54.213987688568785,0.12744504543080754,MixedLM,Chryseobacterium.indologenes
+C(Symptoms)[T.Mild],30.009589127816042,0.7740642446277104,MixedLM,Chryseobacterium.indologenes
+C(Symptoms)[T.Severe],118.57900720767731,0.5339276158257298,MixedLM,Chryseobacterium.indologenes
+Severity,-36.43060556540843,0.51843678235274,MixedLM,Chryseobacterium.indologenes
+Group Var,0.40031581244616254,0.006743760235779329,MixedLM,Chryseobacterium.indologenes
+Intercept,-105.8870028005458,0.0040198060153511924,MixedLM,Bradyrhizobium.sp.6(2017)
+C(Timing)[T.Post],96.04346939817529,0.00618698415601796,MixedLM,Bradyrhizobium.sp.6(2017)
+C(Timing)[T.Prior],135.21072552034997,5.494322782128046e-05,MixedLM,Bradyrhizobium.sp.6(2017)
+C(Symptoms)[T.Mild],132.41734083206256,0.10006789655445497,MixedLM,Bradyrhizobium.sp.6(2017)
+C(Symptoms)[T.Severe],230.25738117770211,0.11719510670036049,MixedLM,Bradyrhizobium.sp.6(2017)
+Severity,-57.00704031357605,0.18947890812143497,MixedLM,Bradyrhizobium.sp.6(2017)
+Group Var,0.15399948029170113,0.11448574647073598,MixedLM,Bradyrhizobium.sp.6(2017)
+Intercept,-34.08351779311367,0.4003545057525476,MixedLM,Neisseria.gonorrhoeae
+C(Timing)[T.Post],44.986879872753825,0.30244888015156557,MixedLM,Neisseria.gonorrhoeae
+C(Timing)[T.Prior],54.315331156066435,0.1946234334083835,MixedLM,Neisseria.gonorrhoeae
+C(Symptoms)[T.Mild],-45.217208974989134,0.5880152281661473,MixedLM,Neisseria.gonorrhoeae
+C(Symptoms)[T.Severe],-171.9361609041359,0.25964092129054517,MixedLM,Neisseria.gonorrhoeae
+Severity,36.5113488652964,0.4174996180666113,MixedLM,Neisseria.gonorrhoeae
+Group Var,2.353950012893226e-09,0.9999999740590511,MixedLM,Neisseria.gonorrhoeae
+Intercept,-54.02941134634791,0.16715817672357192,MixedLM,Prevotella.histicola
+C(Timing)[T.Post],31.72185138580158,0.3957199144034427,MixedLM,Prevotella.histicola
+C(Timing)[T.Prior],53.98072125274136,0.13046638326894858,MixedLM,Prevotella.histicola
+C(Symptoms)[T.Mild],-11.328174377474797,0.8945601225540903,MixedLM,Prevotella.histicola
+C(Symptoms)[T.Severe],-4.539316880238181,0.9767918968742649,MixedLM,Prevotella.histicola
+Severity,24.588077144832745,0.5939555260515093,MixedLM,Prevotella.histicola
+Group Var,0.1510118354494241,0.12948936746971101,MixedLM,Prevotella.histicola
+Intercept,-91.11807372982543,0.02176322087549986,MixedLM,Dermacoccus.nishinomiyaensis
+C(Timing)[T.Post],129.51032983602678,0.0010547945040683938,MixedLM,Dermacoccus.nishinomiyaensis
+C(Timing)[T.Prior],108.08803629872659,0.004282806882095567,MixedLM,Dermacoccus.nishinomiyaensis
+C(Symptoms)[T.Mild],15.711641146506189,0.8537179529112409,MixedLM,Dermacoccus.nishinomiyaensis
+C(Symptoms)[T.Severe],-64.82187773835862,0.6769864313152281,MixedLM,Dermacoccus.nishinomiyaensis
+Severity,9.39948268895838,0.8380347745463346,MixedLM,Dermacoccus.nishinomiyaensis
+Group Var,0.09419279278147567,0.26618106089666094,MixedLM,Dermacoccus.nishinomiyaensis
+Intercept,-33.127292570786985,0.4778326526848161,MixedLM,Collinsella.aerofaciens
+C(Timing)[T.Post],15.801162097101876,0.7095210520668623,MixedLM,Collinsella.aerofaciens
+C(Timing)[T.Prior],54.0939530821026,0.181377255990411,MixedLM,Collinsella.aerofaciens
+C(Symptoms)[T.Mild],29.87117318265903,0.7738556418999358,MixedLM,Collinsella.aerofaciens
+C(Symptoms)[T.Severe],2.801607757137007,0.9882167982161877,MixedLM,Collinsella.aerofaciens
+Severity,-6.9793592059731075,0.9009964295212118,MixedLM,Collinsella.aerofaciens
+Group Var,0.22528024355899842,0.042144450435406836,MixedLM,Collinsella.aerofaciens
+Intercept,-94.07182287932909,0.02803340850126308,MixedLM,Streptococcus.sp.A12
+C(Timing)[T.Post],72.86170276070267,0.0739286785678414,MixedLM,Streptococcus.sp.A12
+C(Timing)[T.Prior],63.11356116595982,0.10520306751760881,MixedLM,Streptococcus.sp.A12
+C(Symptoms)[T.Mild],-49.18543302618038,0.5996720933784129,MixedLM,Streptococcus.sp.A12
+C(Symptoms)[T.Severe],-194.15417002214716,0.25636349008264636,MixedLM,Streptococcus.sp.A12
+Severity,76.12058451680952,0.1322397228233903,MixedLM,Streptococcus.sp.A12
+Group Var,0.15556679823307618,0.10785663841226904,MixedLM,Streptococcus.sp.A12
+Intercept,-92.87976677175011,0.02515060016340918,MixedLM,Bradyrhizobium.septentrionale
+C(Timing)[T.Post],90.4581642004864,0.02827216100019904,MixedLM,Bradyrhizobium.septentrionale
+C(Timing)[T.Prior],117.16994300191469,0.0029878204025606835,MixedLM,Bradyrhizobium.septentrionale
+C(Symptoms)[T.Mild],42.41503117857972,0.6339563400589587,MixedLM,Bradyrhizobium.septentrionale
+C(Symptoms)[T.Severe],-10.30835853678071,0.9494587743806293,MixedLM,Bradyrhizobium.septentrionale
+Severity,0.39658618144614677,0.9934157053527304,MixedLM,Bradyrhizobium.septentrionale
+Group Var,0.09604804796321968,0.2609656131374969,MixedLM,Bradyrhizobium.septentrionale
+Intercept,-49.88734458489608,0.29767330637362976,MixedLM,Ruminococcus.torques
+C(Timing)[T.Post],93.47923739458436,0.05910204168564467,MixedLM,Ruminococcus.torques
+C(Timing)[T.Prior],63.09573896116047,0.1835868653441768,MixedLM,Ruminococcus.torques
+C(Symptoms)[T.Mild],-23.53069253322731,0.815582451078977,MixedLM,Ruminococcus.torques
+C(Symptoms)[T.Severe],21.25489007685846,0.9081729181998132,MixedLM,Ruminococcus.torques
+Severity,8.283900899171812,0.8790441592439472,MixedLM,Ruminococcus.torques
+Group Var,0.046968816784052736,0.5356148330397584,MixedLM,Ruminococcus.torques
+Intercept,-101.68989954769411,0.04999465173614255,MixedLM,Neisseria.subflava
+C(Timing)[T.Post],125.74040729800222,0.005989878662408937,MixedLM,Neisseria.subflava
+C(Timing)[T.Prior],36.19396649636663,0.40668647857391227,MixedLM,Neisseria.subflava
+C(Symptoms)[T.Mild],-127.53034542604716,0.27475224015470334,MixedLM,Neisseria.subflava
+C(Symptoms)[T.Severe],-409.03509796834794,0.05485219537158413,MixedLM,Neisseria.subflava
+Severity,130.95713760615283,0.03770545916223784,MixedLM,Neisseria.subflava
+Group Var,0.2741485333127309,0.02173281425786092,MixedLM,Neisseria.subflava
+Intercept,-115.1934971141215,0.010138968274661974,MixedLM,Segatella.copri
+C(Timing)[T.Post],106.60404365855447,0.014748623368717458,MixedLM,Segatella.copri
+C(Timing)[T.Prior],99.1436766685156,0.01771076777699031,MixedLM,Segatella.copri
+C(Symptoms)[T.Mild],-44.44937107795647,0.6469033602106178,MixedLM,Segatella.copri
+C(Symptoms)[T.Severe],4.551577306389665,0.9795024765910136,MixedLM,Segatella.copri
+Severity,55.39040885586836,0.2901173418899774,MixedLM,Segatella.copri
+Group Var,0.12134309715974459,0.17967717814010709,MixedLM,Segatella.copri
+Intercept,-119.69102427247863,0.008457746179824786,MixedLM,Bradyrhizobium.elkanii
+C(Timing)[T.Post],103.57072184197631,0.019905025861380005,MixedLM,Bradyrhizobium.elkanii
+C(Timing)[T.Prior],135.43098737985514,0.001457756812470255,MixedLM,Bradyrhizobium.elkanii
+C(Symptoms)[T.Mild],117.97522464297036,0.23013122038922584,MixedLM,Bradyrhizobium.elkanii
+C(Symptoms)[T.Severe],100.84441306169744,0.57420850697634,MixedLM,Bradyrhizobium.elkanii
+Severity,-30.778049992783355,0.5617777491773253,MixedLM,Bradyrhizobium.elkanii
+Group Var,0.11708746790870042,0.19131000548215404,MixedLM,Bradyrhizobium.elkanii
+Intercept,-10.996850022593208,0.8381767732534496,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Timing)[T.Post],4.19942641183319,0.9245806880400697,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Timing)[T.Prior],-8.995975946762194,0.8312099284602146,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Symptoms)[T.Mild],-86.82457770247392,0.4827345700198432,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Symptoms)[T.Severe],-37.90252712003827,0.8665746145410159,MixedLM,Bifidobacterium.pseudocatenulatum
+Severity,50.19072805720526,0.4522062784441523,MixedLM,Bifidobacterium.pseudocatenulatum
+Group Var,0.3967995245512449,0.006166338690937712,MixedLM,Bifidobacterium.pseudocatenulatum
+Intercept,-121.3442129708583,0.011350044872855044,MixedLM,Bradyrhizobium.genosp.L
+C(Timing)[T.Post],138.81248987205922,0.005580475258119069,MixedLM,Bradyrhizobium.genosp.L
+C(Timing)[T.Prior],162.1711473430485,0.0007324957112508952,MixedLM,Bradyrhizobium.genosp.L
+C(Symptoms)[T.Mild],64.9675858781555,0.5175268115807536,MixedLM,Bradyrhizobium.genosp.L
+C(Symptoms)[T.Severe],56.88243972987247,0.7564080670281672,MixedLM,Bradyrhizobium.genosp.L
+Severity,-16.901945751410686,0.7549685795500091,MixedLM,Bradyrhizobium.genosp.L
+Group Var,0.03396359976758725,0.643556440749516,MixedLM,Bradyrhizobium.genosp.L
+Intercept,-71.59242824527657,0.1738244291390344,MixedLM,Bradyrhizobium.sp.CCBAU.51753
+C(Timing)[T.Post],117.1272550570585,0.02346595547611563,MixedLM,Bradyrhizobium.sp.CCBAU.51753
+C(Timing)[T.Prior],126.18723427330796,0.010699050844008882,MixedLM,Bradyrhizobium.sp.CCBAU.51753
+C(Symptoms)[T.Mild],-149.21617518501995,0.18937374729619072,MixedLM,Bradyrhizobium.sp.CCBAU.51753
+C(Symptoms)[T.Severe],-269.908008546605,0.19346260048680142,MixedLM,Bradyrhizobium.sp.CCBAU.51753
+Severity,84.33011035170172,0.1691871890132428,MixedLM,Bradyrhizobium.sp.CCBAU.51753
+Group Var,0.11261185731765741,0.2057092396837229,MixedLM,Bradyrhizobium.sp.CCBAU.51753
+Intercept,-88.11359736458982,0.08037364826328117,MixedLM,Bradyrhizobium.sp.41S5
+C(Timing)[T.Post],127.9688534007338,0.005604591082959981,MixedLM,Bradyrhizobium.sp.41S5
+C(Timing)[T.Prior],153.30854276121227,0.0005067815558118526,MixedLM,Bradyrhizobium.sp.41S5
+C(Symptoms)[T.Mild],-24.715465382110118,0.8252084568400346,MixedLM,Bradyrhizobium.sp.41S5
+C(Symptoms)[T.Severe],-54.60276896586831,0.7891791646651509,MixedLM,Bradyrhizobium.sp.41S5
+Severity,12.549054669205542,0.8353844130052486,MixedLM,Bradyrhizobium.sp.41S5
+Group Var,0.21180240593057278,0.0504964143573909,MixedLM,Bradyrhizobium.sp.41S5
+Intercept,-58.639314282643305,0.21428053463670327,MixedLM,Jouyvirus.ev207
+C(Timing)[T.Post],105.22681987846543,0.03423680393822299,MixedLM,Jouyvirus.ev207
+C(Timing)[T.Prior],81.64428678381024,0.08641892161516937,MixedLM,Jouyvirus.ev207
+C(Symptoms)[T.Mild],-160.72399783990878,0.10294945276494821,MixedLM,Jouyvirus.ev207
+C(Symptoms)[T.Severe],-239.05421909435802,0.18425960227441707,MixedLM,Jouyvirus.ev207
+Severity,91.89320142629252,0.08401012648821927,MixedLM,Jouyvirus.ev207
+Group Var,0.026599400831011207,0.7270218161169529,MixedLM,Jouyvirus.ev207

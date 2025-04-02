@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-15.876244047295177,0.726962480115775,MixedLM,Chryseobacterium.indologenes
+C(Timing)[T.Post],44.64396212754765,0.23220785407519584,MixedLM,Chryseobacterium.indologenes
+C(Timing)[T.Prior],54.213987688568785,0.12744504543080754,MixedLM,Chryseobacterium.indologenes
+C(Symptoms)[T.Mild],30.009589127816042,0.7740642446277104,MixedLM,Chryseobacterium.indologenes
+C(Symptoms)[T.Severe],118.57900720767731,0.5339276158257298,MixedLM,Chryseobacterium.indologenes
+Severity,-36.43060556540843,0.51843678235274,MixedLM,Chryseobacterium.indologenes
+Group Var,0.40031581244616254,0.006743760235779329,MixedLM,Chryseobacterium.indologenes

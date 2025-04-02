@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-10.996850022593208,0.8381767732534496,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Timing)[T.Post],4.19942641183319,0.9245806880400697,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Timing)[T.Prior],-8.995975946762194,0.8312099284602146,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Symptoms)[T.Mild],-86.82457770247392,0.4827345700198432,MixedLM,Bifidobacterium.pseudocatenulatum
+C(Symptoms)[T.Severe],-37.90252712003827,0.8665746145410159,MixedLM,Bifidobacterium.pseudocatenulatum
+Severity,50.19072805720526,0.4522062784441523,MixedLM,Bifidobacterium.pseudocatenulatum
+Group Var,0.3967995245512449,0.006166338690937712,MixedLM,Bifidobacterium.pseudocatenulatum

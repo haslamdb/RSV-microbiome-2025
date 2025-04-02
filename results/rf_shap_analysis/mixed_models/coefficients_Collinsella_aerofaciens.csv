@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-33.127292570786985,0.4778326526848161,MixedLM,Collinsella.aerofaciens
+C(Timing)[T.Post],15.801162097101876,0.7095210520668623,MixedLM,Collinsella.aerofaciens
+C(Timing)[T.Prior],54.0939530821026,0.181377255990411,MixedLM,Collinsella.aerofaciens
+C(Symptoms)[T.Mild],29.87117318265903,0.7738556418999358,MixedLM,Collinsella.aerofaciens
+C(Symptoms)[T.Severe],2.801607757137007,0.9882167982161877,MixedLM,Collinsella.aerofaciens
+Severity,-6.9793592059731075,0.9009964295212118,MixedLM,Collinsella.aerofaciens
+Group Var,0.22528024355899842,0.042144450435406836,MixedLM,Collinsella.aerofaciens

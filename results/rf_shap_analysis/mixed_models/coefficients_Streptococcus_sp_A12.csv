@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-94.07182287932909,0.02803340850126308,MixedLM,Streptococcus.sp.A12
+C(Timing)[T.Post],72.86170276070267,0.0739286785678414,MixedLM,Streptococcus.sp.A12
+C(Timing)[T.Prior],63.11356116595982,0.10520306751760881,MixedLM,Streptococcus.sp.A12
+C(Symptoms)[T.Mild],-49.18543302618038,0.5996720933784129,MixedLM,Streptococcus.sp.A12
+C(Symptoms)[T.Severe],-194.15417002214716,0.25636349008264636,MixedLM,Streptococcus.sp.A12
+Severity,76.12058451680952,0.1322397228233903,MixedLM,Streptococcus.sp.A12
+Group Var,0.15556679823307618,0.10785663841226904,MixedLM,Streptococcus.sp.A12

@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-34.08351779311367,0.4003545057525476,MixedLM,Neisseria.gonorrhoeae
+C(Timing)[T.Post],44.986879872753825,0.30244888015156557,MixedLM,Neisseria.gonorrhoeae
+C(Timing)[T.Prior],54.315331156066435,0.1946234334083835,MixedLM,Neisseria.gonorrhoeae
+C(Symptoms)[T.Mild],-45.217208974989134,0.5880152281661473,MixedLM,Neisseria.gonorrhoeae
+C(Symptoms)[T.Severe],-171.9361609041359,0.25964092129054517,MixedLM,Neisseria.gonorrhoeae
+Severity,36.5113488652964,0.4174996180666113,MixedLM,Neisseria.gonorrhoeae
+Group Var,2.353950012893226e-09,0.9999999740590511,MixedLM,Neisseria.gonorrhoeae

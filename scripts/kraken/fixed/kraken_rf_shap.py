@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# scripts/kraken/fixed/run_rf_shap.py
+# scripts/kraken/kraken_rf_shap.py
 
 import argparse
 import os
@@ -14,10 +14,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('kraken_analysis')
 
-# Import our local fixed version
-from rf_shap_fixed import run_rf_shap_analysis
-
-# Add kraken_tools to path for other dependencies
+# Add kraken_tools to path
 kraken_tools_path = os.path.expanduser("~/Documents/Code/kraken_tools")
 if os.path.exists(kraken_tools_path):
     sys.path.append(kraken_tools_path)
@@ -26,6 +23,7 @@ else:
     sys.exit(1)
 
 try:
+    from kraken_tools.analysis.rf_shap import run_rf_shap_analysis
     from kraken_tools.logger import setup_logger, log_print
 except ImportError as e:
     logger.error(f"Error importing from kraken_tools: {e}")
@@ -120,6 +118,30 @@ def parse_arguments():
     
     return parser.parse_args()
 
+def patch_rf_shap_module():
+    """Monkey patch the run_rf_shap_analysis function to fix the logging issue"""
+    import types
+    import inspect
+    from kraken_tools.analysis.rf_shap import run_rf_shap_analysis as orig_func
+    
+    source = inspect.getsource(orig_func)
+    # Fix the line that's causing issues
+    patched_source = source.replace(
+        "logger = logging.getLogger('kraken_analysis')", 
+        "import logging as logging_module\nlogger = logging_module.getLogger('kraken_analysis')"
+    )
+    
+    # Create namespace for exec
+    namespace = {}
+    exec(patched_source, globals(), namespace)
+    patched_func = namespace['run_rf_shap_analysis']
+    
+    # Replace the original function
+    import kraken_tools.analysis.rf_shap
+    kraken_tools.analysis.rf_shap.run_rf_shap_analysis = patched_func
+    
+    return patched_func
+
 def main():
     # Parse command line arguments
     args = parse_arguments()
@@ -149,9 +171,12 @@ def main():
     else:
         log_print(f"Analyzing top {args.top_n} taxa by abundance", level="info")
     
+    # Patch the rf_shap module to fix the logging issue
+    patched_run_rf_shap = patch_rf_shap_module()
+    
     # Run RF-SHAP analysis
     try:
-        results = run_rf_shap_analysis(
+        results = patched_run_rf_shap(
             abundance_file=args.abundance_file,
             metadata_file=args.metadata,
             output_dir=args.output_dir,

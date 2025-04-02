@@ -15,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger('kraken_analysis')
 
 # Import our local fixed version
-from rf_shap_fixed import run_rf_shap_analysis
+from rf_shap import run_rf_shap_analysis
 
 # Add kraken_tools to path for other dependencies
 kraken_tools_path = os.path.expanduser("~/Documents/Code/kraken_tools")

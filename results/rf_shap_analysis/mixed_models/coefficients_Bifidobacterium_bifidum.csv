@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-45.628593837001496,0.22114260306767097,MixedLM,Bifidobacterium.bifidum
+C(Timing)[T.Post],23.520134463514808,0.5535011448248562,MixedLM,Bifidobacterium.bifidum
+C(Timing)[T.Prior],8.95407469992688,0.8140573230602169,MixedLM,Bifidobacterium.bifidum
+C(Symptoms)[T.Mild],-20.344662526450556,0.7924594949981885,MixedLM,Bifidobacterium.bifidum
+C(Symptoms)[T.Severe],-81.3651341073617,0.5646367451697882,MixedLM,Bifidobacterium.bifidum
+Severity,42.61830354341919,0.30695446020068307,MixedLM,Bifidobacterium.bifidum
+Group Var,0.013018889074426485,0.8502235635394465,MixedLM,Bifidobacterium.bifidum

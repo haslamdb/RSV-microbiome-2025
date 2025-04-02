@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-115.1934971141215,0.010138968274661974,MixedLM,Segatella.copri
+C(Timing)[T.Post],106.60404365855447,0.014748623368717458,MixedLM,Segatella.copri
+C(Timing)[T.Prior],99.1436766685156,0.01771076777699031,MixedLM,Segatella.copri
+C(Symptoms)[T.Mild],-44.44937107795647,0.6469033602106178,MixedLM,Segatella.copri
+C(Symptoms)[T.Severe],4.551577306389665,0.9795024765910136,MixedLM,Segatella.copri
+Severity,55.39040885586836,0.2901173418899774,MixedLM,Segatella.copri
+Group Var,0.12134309715974459,0.17967717814010709,MixedLM,Segatella.copri

@@ -1,0 +1,21 @@
+                Mixed Linear Model Regression Results
+======================================================================
+Model:                MixedLM   Dependent Variable:   MicrobeAbundance
+No. Observations:     237       Method:               REML            
+No. Groups:           83        Scale:                80674.2480      
+Min. group size:      2         Log-Likelihood:       -1663.1872      
+Max. group size:      3         Converged:            Yes             
+Mean group size:      2.9                                             
+----------------------------------------------------------------------
+                        Coef.   Std.Err.   z    P>|z|  [0.025   0.975]
+----------------------------------------------------------------------
+Intercept               -88.114   50.393 -1.749 0.080 -186.882  10.655
+C(Timing)[T.Post]       127.969   46.197  2.770 0.006   37.424 218.514
+C(Timing)[T.Prior]      153.309   44.090  3.477 0.001   66.893 239.724
+C(Symptoms)[T.Mild]     -24.715  111.910 -0.221 0.825 -244.055 194.624
+C(Symptoms)[T.Severe]   -54.603  204.217 -0.267 0.789 -454.860 345.655
+Severity                 12.549   60.390  0.208 0.835 -105.813 130.911
+Group Var             17087.000   30.760                              
+======================================================================
+
+Model type: MixedLM

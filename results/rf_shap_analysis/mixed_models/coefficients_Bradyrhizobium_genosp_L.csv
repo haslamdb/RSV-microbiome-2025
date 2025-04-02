@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-121.3442129708583,0.011350044872855044,MixedLM,Bradyrhizobium.genosp.L
+C(Timing)[T.Post],138.81248987205922,0.005580475258119069,MixedLM,Bradyrhizobium.genosp.L
+C(Timing)[T.Prior],162.1711473430485,0.0007324957112508952,MixedLM,Bradyrhizobium.genosp.L
+C(Symptoms)[T.Mild],64.9675858781555,0.5175268115807536,MixedLM,Bradyrhizobium.genosp.L
+C(Symptoms)[T.Severe],56.88243972987247,0.7564080670281672,MixedLM,Bradyrhizobium.genosp.L
+Severity,-16.901945751410686,0.7549685795500091,MixedLM,Bradyrhizobium.genosp.L
+Group Var,0.03396359976758725,0.643556440749516,MixedLM,Bradyrhizobium.genosp.L

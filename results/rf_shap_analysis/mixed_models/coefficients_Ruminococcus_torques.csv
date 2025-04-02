@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-49.88734458489608,0.29767330637362976,MixedLM,Ruminococcus.torques
+C(Timing)[T.Post],93.47923739458436,0.05910204168564467,MixedLM,Ruminococcus.torques
+C(Timing)[T.Prior],63.09573896116047,0.1835868653441768,MixedLM,Ruminococcus.torques
+C(Symptoms)[T.Mild],-23.53069253322731,0.815582451078977,MixedLM,Ruminococcus.torques
+C(Symptoms)[T.Severe],21.25489007685846,0.9081729181998132,MixedLM,Ruminococcus.torques
+Severity,8.283900899171812,0.8790441592439472,MixedLM,Ruminococcus.torques
+Group Var,0.046968816784052736,0.5356148330397584,MixedLM,Ruminococcus.torques

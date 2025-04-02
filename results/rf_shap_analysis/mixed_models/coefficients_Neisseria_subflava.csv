@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-101.68989954769411,0.04999465173614255,MixedLM,Neisseria.subflava
+C(Timing)[T.Post],125.74040729800222,0.005989878662408937,MixedLM,Neisseria.subflava
+C(Timing)[T.Prior],36.19396649636663,0.40668647857391227,MixedLM,Neisseria.subflava
+C(Symptoms)[T.Mild],-127.53034542604716,0.27475224015470334,MixedLM,Neisseria.subflava
+C(Symptoms)[T.Severe],-409.03509796834794,0.05485219537158413,MixedLM,Neisseria.subflava
+Severity,130.95713760615283,0.03770545916223784,MixedLM,Neisseria.subflava
+Group Var,0.2741485333127309,0.02173281425786092,MixedLM,Neisseria.subflava

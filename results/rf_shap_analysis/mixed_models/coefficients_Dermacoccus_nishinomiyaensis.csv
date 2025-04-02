@@ -1,0 +1,8 @@
+Variable,Coefficient,P_value,Model_Type,Taxon
+Intercept,-91.11807372982543,0.02176322087549986,MixedLM,Dermacoccus.nishinomiyaensis
+C(Timing)[T.Post],129.51032983602678,0.0010547945040683938,MixedLM,Dermacoccus.nishinomiyaensis
+C(Timing)[T.Prior],108.08803629872659,0.004282806882095567,MixedLM,Dermacoccus.nishinomiyaensis
+C(Symptoms)[T.Mild],15.711641146506189,0.8537179529112409,MixedLM,Dermacoccus.nishinomiyaensis
+C(Symptoms)[T.Severe],-64.82187773835862,0.6769864313152281,MixedLM,Dermacoccus.nishinomiyaensis
+Severity,9.39948268895838,0.8380347745463346,MixedLM,Dermacoccus.nishinomiyaensis
+Group Var,0.09419279278147567,0.26618106089666094,MixedLM,Dermacoccus.nishinomiyaensis
