@@ -99,6 +99,36 @@ def parse_arguments():
     )
     
     parser.add_argument(
+        "--filter-human",
+        action="store_true",
+        dest="filter_human",
+        default=True,
+        help="Filter out human reads (default: True)"
+    )
+    
+    parser.add_argument(
+        "--no-filter-human",
+        action="store_false",
+        dest="filter_human",
+        help="Skip filtering of human reads"
+    )
+    
+    parser.add_argument(
+        "--filter-abundance",
+        action="store_true",
+        dest="filter_abundance",
+        default=True,
+        help="Filter abundance by minimum prevalence and abundance (default: True)"
+    )
+    
+    parser.add_argument(
+        "--no-filter-abundance",
+        action="store_false",
+        dest="filter_abundance",
+        help="Skip filtering by abundance thresholds"
+    )
+    
+    parser.add_argument(
         "--metadata",
         help="Path to metadata file"
     )
@@ -468,7 +498,7 @@ def filter_human_reads(abundance_df, logger, taxonomic_level='S'):
     Returns:
         Filtered abundance DataFrame with human reads removed
     """
-    logger.info("Filtering out human genome reads")
+    logger.info(f"Filtering out human genome reads at taxonomic level {taxonomic_level}")
     
     # Get only the abundance columns (excluding Species)
     abundance_cols = [col for col in abundance_df.columns if col != 'Species']
@@ -478,14 +508,15 @@ def filter_human_reads(abundance_df, logger, taxonomic_level='S'):
     
     # Set human patterns based on taxonomic level
     if taxonomic_level == 'S':
-        human_patterns = ['Homo sapiens']
-        logger.info("Using species-level filter: 'Homo sapiens'")
+        # Include both space and dot formats to handle different naming conventions
+        human_patterns = ['Homo sapiens', 'Homo.sapiens']
+        logger.info("Using species-level filters: 'Homo sapiens', 'Homo.sapiens'")
     elif taxonomic_level == 'G':
         human_patterns = ['Homo']
         logger.info("Using genus-level filter: 'Homo'")
     else:
-        human_patterns = ['Homo sapiens', 'Homo']
-        logger.info("Using default filters: 'Homo sapiens', 'Homo'")
+        human_patterns = ['Homo sapiens', 'Homo.sapiens', 'Homo']
+        logger.info("Using default filters: 'Homo sapiens', 'Homo.sapiens', 'Homo'")
     
     human_taxa = []
     
@@ -948,17 +979,26 @@ def main():
             merged_df.to_csv(raw_abundance_file, sep='\t', index=False)
             log_print(f"Raw abundance data saved to {raw_abundance_file}", level="info")
             
-            # Filter out human reads
-            log_print("Removing human genome reads", level="info")
-            human_filtered_df = filter_human_reads(merged_df, logger)
+            # Initialize processed_df for further steps
+            processed_df = merged_df
             
-            # Save human-filtered abundance data
-            human_filtered_file = os.path.join(args.output_dir, "human_filtered_abundance.tsv")
-            human_filtered_df.to_csv(human_filtered_file, sep='\t', index=False)
-            log_print(f"Human-filtered abundance data saved to {human_filtered_file}", level="info")
-            
-            # Replace the merged_df with the human_filtered_df for further processing
-            merged_df = human_filtered_df
+            # Filter out human reads if requested
+            if args.filter_human:
+                log_print("Removing human genome reads", level="info")
+                human_filtered_df = filter_human_reads(processed_df, logger, args.taxonomic_level)
+                
+                # Save human-filtered abundance data
+                human_filtered_file = os.path.join(args.output_dir, "human_filtered_abundance.tsv")
+                human_filtered_df.to_csv(human_filtered_file, sep='\t', index=False)
+                log_print(f"Human-filtered abundance data saved to {human_filtered_file}", level="info")
+                
+                # Update the processed_df
+                processed_df = human_filtered_df
+            else:
+                log_print("Skipping human read filtering as requested", level="info")
+                
+            # Replace the merged_df with the processed_df for further processing
+            merged_df = processed_df
         else:
             # If direct merge failed, fall back to the traditional approach
             use_direct_merge = False
@@ -985,34 +1025,59 @@ def main():
         merged_df.to_csv(raw_abundance_file, sep='\t', index=False)
         log_print(f"Raw abundance data saved to {raw_abundance_file}", level="info")
     
-    # Filter out human reads
-    log_print("Removing human genome reads", level="info")
-    human_filtered_df = filter_human_reads(merged_df, logger)
+    # Initialize df for further processing
+    processed_df = merged_df
     
-    # Save human-filtered abundance data
-    human_filtered_file = os.path.join(args.output_dir, "human_filtered_abundance.tsv")
-    human_filtered_df.to_csv(human_filtered_file, sep='\t', index=False)
-    log_print(f"Human-filtered abundance data saved to {human_filtered_file}", level="info")
+    # Filter out human reads if requested
+    if args.filter_human:
+        log_print("Removing human genome reads", level="info")
+        human_filtered_df = filter_human_reads(processed_df, logger, args.taxonomic_level)
+        
+        # Double-check for any human reads that might still be present
+        if "Homo.sapiens" in human_filtered_df["Species"].values:
+            log_print("WARNING: Human reads (Homo.sapiens) still present after filtering. Manually removing them.", level="warning")
+            human_filtered_df = human_filtered_df[human_filtered_df["Species"] != "Homo.sapiens"]
+            log_print("Human reads (Homo.sapiens) successfully removed manually.", level="info")
+        
+        # Save human-filtered abundance data
+        human_filtered_file = os.path.join(args.output_dir, "human_filtered_abundance.tsv")
+        human_filtered_df.to_csv(human_filtered_file, sep='\t', index=False)
+        log_print(f"Human-filtered abundance data saved to {human_filtered_file}", level="info")
+        
+        # Update processed_df for further steps
+        processed_df = human_filtered_df
+    else:
+        log_print("Skipping human read filtering as requested", level="info")
+        human_filtered_df = processed_df  # For backward compatibility with code below
     
-    # Replace the merged_df with the human_filtered_df for further processing
-    # This ensures the rest of the pipeline continues with human-filtered data
-    merged_df = human_filtered_df
-    
-    # Filter abundance data based on min abundance and prevalence
-    log_print("Filtering abundance data", level="info")
-    filtered_df = filter_abundance_data(human_filtered_df, args.min_abundance, args.min_prevalence, logger)
-    
-    # Save filtered abundance data
-    filtered_abundance_file = os.path.join(args.output_dir, f"filtered_{args.taxonomic_level}_abundance.tsv")
-    filtered_df.to_csv(filtered_abundance_file, sep='\t', index=False)
-    log_print(f"Filtered abundance data saved to {filtered_abundance_file}", level="info")
+    # Filter abundance data based on min abundance and prevalence if requested
+    if args.filter_abundance:
+        log_print("Filtering abundance data by prevalence and abundance", level="info")
+        filtered_df = filter_abundance_data(processed_df, args.min_abundance, args.min_prevalence, logger)
+        
+        # Save filtered abundance data
+        filtered_abundance_file = os.path.join(args.output_dir, f"filtered_{args.taxonomic_level}_abundance.tsv")
+        filtered_df.to_csv(filtered_abundance_file, sep='\t', index=False)
+        log_print(f"Filtered abundance data saved to {filtered_abundance_file}", level="info")
+        
+        # Update processed_df for further steps
+        processed_df = filtered_df
+    else:
+        log_print("Skipping abundance filtering as requested", level="info")
+        filtered_df = processed_df  # For backward compatibility with code below
     
     # Apply normalization if requested
-    normalized_df = filtered_df
+    normalized_df = processed_df  # Use the processed_df from previous steps
     if args.normalize:
         log_print(f"Applying {args.normalization_method} normalization", level="info")
         normalized_file = os.path.join(args.output_dir, f"normalized_{args.normalization_method}_{args.taxonomic_level}_abundance.tsv")
-        normalized_df = perform_normalization(filtered_df, args.normalization_method, normalized_file, logger)
+        normalized_df = perform_normalization(processed_df, args.normalization_method, normalized_file, logger)
+        
+        # Double-check for any human reads that might still be present after normalization
+        if args.filter_human and "Homo.sapiens" in normalized_df["Species"].values:
+            log_print("Removing any remaining human reads after normalization", level="info")
+            normalized_df = normalized_df[normalized_df["Species"] != "Homo.sapiens"]
+            
         log_print(f"Normalized abundance data saved to {normalized_file}", level="info")
         
         # For compatibility, also save as normalized_abundance.tsv
@@ -1020,21 +1085,31 @@ def main():
         normalized_df.to_csv(general_normalized_file, sep='\t', index=False)
         log_print(f"Normalized abundance data saved to {general_normalized_file} (for compatibility)", level="info")
     else:
-        # For compatibility, still save as filtered_abundance.tsv
-        general_filtered_file = os.path.join(args.output_dir, "filtered_abundance.tsv")
-        filtered_df.to_csv(general_filtered_file, sep='\t', index=False)
-        log_print(f"Filtered abundance data saved to {general_filtered_file} (for compatibility)", level="info")
+        # For compatibility, still save the processed data
+        general_processed_file = os.path.join(args.output_dir, "filtered_abundance.tsv")
+        processed_df.to_csv(general_processed_file, sep='\t', index=False)
+        log_print(f"Processed abundance data saved to {general_processed_file} (for compatibility)", level="info")
     
     # Merge with metadata if provided
     if args.metadata:
         log_print(f"Merging with metadata from {args.metadata}", level="info")
-        # Use normalized data if available, otherwise use filtered data
-        data_to_merge = normalized_df if args.normalize else filtered_df
+        # Use normalized data if available, otherwise use processed data
+        data_to_merge = normalized_df if args.normalize else processed_df
+        
+        # Final check for any human reads before merging with metadata
+        if args.filter_human and "Homo.sapiens" in data_to_merge["Species"].values:
+            log_print("Removing any remaining human reads before metadata merge", level="info")
+            data_to_merge = data_to_merge[data_to_merge["Species"] != "Homo.sapiens"]
+            
         merged_with_metadata = merge_with_metadata(data_to_merge, args.metadata, logger)
         
         if merged_with_metadata is not None:
-            # Save merged data
-            merged_file = os.path.join(args.output_dir, "abundance_with_metadata.tsv")
+            # Save merged data with appropriate name based on whether normalization was applied
+            if args.normalize:
+                merged_file = os.path.join(args.output_dir, f"normalized_{args.normalization_method}_abundance_with_metadata.tsv")
+            else:
+                merged_file = os.path.join(args.output_dir, "non_normalized_abundance_with_metadata.tsv")
+                
             merged_with_metadata.to_csv(merged_file, sep='\t', index=False)
             log_print(f"Data with metadata saved to {merged_file}", level="info")
     
