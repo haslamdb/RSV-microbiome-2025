@@ -1,4 +1,4 @@
 ,taxon,variable,test,statistic,p-value,mean_Mild,mean_Asymptomatic,mean_Severe,species_name,time_point
-0,Streptococcus.pneumoniae,Symptoms,Kruskal-Wallis,2.667374261518063,0.26350389462246654,270.34079932973174,240.72069676263206,149.2577004710792,Streptococcus.pneumoniae,Post
-1,Haemophilus.influenzae,Symptoms,Kruskal-Wallis,0.883530449041956,0.6429005550245003,65.25394855382321,83.16180010856861,-38.99694338927187,Haemophilus.influenzae,Post
-2,Moraxella.catarrhalis,Symptoms,Kruskal-Wallis,5.781048532021487,0.05554708352856626,168.2335615914379,240.83863458310924,-39.030832317206304,Moraxella.catarrhalis,Post
+0,Streptococcus.pneumoniae,Symptoms,Kruskal-Wallis,2.667374261518063,0.26350389462246654,270.3407993297318,240.72069676263206,149.2577004710792,Streptococcus.pneumoniae,Post
+1,Haemophilus.influenzae,Symptoms,Kruskal-Wallis,0.883530449041956,0.6429005550245003,65.25394855382321,83.16180010856863,-38.99694338927188,Haemophilus.influenzae,Post
+2,Moraxella.catarrhalis,Symptoms,Kruskal-Wallis,5.781048532021487,0.05554708352856626,168.2335615914379,240.83863458310918,-39.03083231720632,Moraxella.catarrhalis,Post

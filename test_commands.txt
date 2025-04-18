@@ -1,7 +1,7 @@
 
-python scripts/kraken/cooccurence_analysis.py --input-file results/kraken_analysis/filtered_S_abundance.tsv --normalization rarefaction --rarefaction-depth 25000 --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" "Moraxella.catarrhalis"
+#python scripts/kraken/cooccurence_analysis.py --input-file results/kraken_analysis/filtered_S_abundance.tsv --normalization rarefaction --rarefaction-depth 25000 --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" "Moraxella.catarrhalis"
 
-
+use the above command with --normalization clr (omitting --normalization-depth). This gives highly significant differences across timepoints.
 
 
 kraken2 --db ~/Databases/Kraken2DB --threads 8 --report ~/Documents/Alignments/KrakenAlignments/Kraken2/3000885600-DNA.kreport --paired trimmed_read1_3000885600-DNA.fastq.gz trimmed_read2_3000885600-DNA.fastq.gz  > ~/Documents/Alignments/KrakenAlignments/Kraken2/3000885600-DNA.kraken

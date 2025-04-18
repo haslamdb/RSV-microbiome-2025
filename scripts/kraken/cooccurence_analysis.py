@@ -895,6 +895,421 @@ def plot_co_occurrence_heatmap(abundance_df, metadata_df, species_indices, outpu
     print(f"Saved co-occurrence heatmap to {output_file}")
     plt.close(fig)
 
+def analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output_dir):
+    """
+    Calculate and analyze the delta (change) in abundance from Prior to Acute timepoints.
+    
+    Parameters:
+    -----------
+    abundance_df : pandas.DataFrame
+        Taxa abundance DataFrame with taxa as index, samples as columns
+    metadata_df : pandas.DataFrame
+        Metadata DataFrame with samples as index
+    species_indices : dict
+        Dictionary mapping species names to their indices in the abundance DataFrame
+    output_dir : str
+        Directory to save analysis results
+        
+    Returns:
+    --------
+    pandas.DataFrame
+        DataFrame containing delta values for each subject and species
+    """
+    print("\nAnalyzing Prior to Acute abundance changes")
+    
+    # Get subject ID column
+    subject_col = 'SubjectID' if 'SubjectID' in metadata_df.columns else None
+    if not subject_col:
+        print("Error: SubjectID column not found in metadata")
+        return None
+    
+    # Get timing column
+    time_var = 'Timing'
+    if time_var not in metadata_df.columns:
+        print(f"Error: {time_var} column not found in metadata")
+        return None
+    
+    # Filter to only include samples from Prior and Acute timepoints
+    prior_acute_samples = metadata_df[metadata_df[time_var].isin(['Prior', 'Acute'])]
+    
+    # Create a dictionary to hold delta values for each subject and species
+    deltas = {}
+    
+    # For each subject with both Prior and Acute samples
+    subject_ids = prior_acute_samples[subject_col].unique()
+    for subject in subject_ids:
+        subject_samples = prior_acute_samples[prior_acute_samples[subject_col] == subject]
+        
+        # Check if subject has both Prior and Acute samples
+        if len(subject_samples[subject_samples[time_var] == 'Prior']) >= 1 and len(subject_samples[subject_samples[time_var] == 'Acute']) >= 1:
+            # Get sample IDs
+            prior_sample = subject_samples[subject_samples[time_var] == 'Prior'].index[0]
+            acute_sample = subject_samples[subject_samples[time_var] == 'Acute'].index[0]
+            
+            # Only process if both samples are in the abundance data
+            if prior_sample in abundance_df.columns and acute_sample in abundance_df.columns:
+                # For each target species, calculate delta
+                for species_name, taxon in species_indices.items():
+                    prior_value = abundance_df.loc[taxon, prior_sample]
+                    acute_value = abundance_df.loc[taxon, acute_sample]
+                    delta = acute_value - prior_value
+                    
+                    # Store in deltas dictionary
+                    if species_name not in deltas:
+                        deltas[species_name] = {}
+                    deltas[species_name][subject] = {
+                        'prior': prior_value,
+                        'acute': acute_value,
+                        'delta': delta,
+                        'subject_id': subject
+                    }
+                    
+                    # Get additional metadata if available
+                    for col in ['Severity', 'Symptoms']:
+                        if col in metadata_df.columns:
+                            # Use the value from Acute sample
+                            if acute_sample in metadata_df.index and pd.notna(metadata_df.loc[acute_sample, col]):
+                                deltas[species_name][subject][col] = metadata_df.loc[acute_sample, col]
+                            # Fallback to Prior sample if Acute doesn't have the value
+                            elif prior_sample in metadata_df.index and pd.notna(metadata_df.loc[prior_sample, col]):
+                                deltas[species_name][subject][col] = metadata_df.loc[prior_sample, col]
+    
+    # Convert nested dictionary to DataFrames for easier analysis
+    delta_dfs = {}
+    for species_name in deltas:
+        # Convert to DataFrame
+        df_data = [data for subject, data in deltas[species_name].items()]
+        if df_data:
+            delta_df = pd.DataFrame(df_data)
+            delta_dfs[species_name] = delta_df
+            
+            # Save to file
+            tables_dir = Path(output_dir) / "tables"
+            delta_file = tables_dir / f"{species_name.replace(' ', '_')}_prior_acute_delta.csv"
+            delta_df.to_csv(delta_file, index=False)
+            print(f"Delta analysis for {species_name} saved to {delta_file}")
+            
+            # Create visualizations
+            figures_dir = Path(output_dir) / "figures"
+            
+            # 1. Simple boxplot of delta values
+            plt.figure(figsize=(8, 6))
+            plt.boxplot(delta_df['delta'].values, labels=[species_name])
+            plt.axhline(y=0, color='r', linestyle='-', alpha=0.3)
+            
+            # Add individual points
+            plt.scatter(np.ones(len(delta_df)) + np.random.normal(0, 0.05, size=len(delta_df)), 
+                        delta_df['delta'].values, color='black', alpha=0.5)
+            
+            # Add p-value from one-sample t-test against 0
+            from scipy.stats import ttest_1samp
+            try:
+                t_stat, p_value = ttest_1samp(delta_df['delta'].values, 0)
+                plt.title(f'Change in {species_name} from Prior to Acute\np={p_value:.3f}')
+            except:
+                plt.title(f'Change in {species_name} from Prior to Acute')
+            
+            plt.ylabel('Delta (Acute - Prior)')
+            plt.tight_layout()
+            plt.savefig(figures_dir / f"{species_name.replace(' ', '_')}_delta_boxplot.pdf", bbox_inches='tight')
+            plt.close()
+            
+            # 2. Faceted boxplots by severity and symptoms if available
+            for facet_var in ['Severity', 'Symptoms']:
+                if facet_var in delta_df.columns:
+                    plt.figure(figsize=(10, 6))
+                    
+                    # Define category order if possible
+                    if facet_var == 'Symptoms':
+                        category_order = ['Asymptomatic', 'Mild', 'Severe']
+                        # Filter to valid categories
+                        valid_cats = [cat for cat in category_order if cat in delta_df[facet_var].unique()]
+                    else:
+                        valid_cats = sorted(delta_df[facet_var].unique())
+                    
+                    # Create plot data
+                    plot_data = []
+                    labels = []
+                    positions = []
+                    
+                    for i, cat in enumerate(valid_cats):
+                        cat_data = delta_df[delta_df[facet_var] == cat]['delta'].values
+                        if len(cat_data) > 0:
+                            plot_data.append(cat_data)
+                            labels.append(f"{cat} (n={len(cat_data)})")
+                            positions.append(i+1)
+                    
+                    # Create boxplot
+                    if plot_data:
+                        plt.boxplot(plot_data, labels=labels, positions=positions)
+                        plt.axhline(y=0, color='r', linestyle='-', alpha=0.3)
+                        
+                        # Add individual points
+                        for i, data in enumerate(plot_data):
+                            plt.scatter(np.ones(len(data)) * (i+1) + np.random.normal(0, 0.05, size=len(data)), 
+                                        data, color='black', alpha=0.5)
+                        
+                        # Add p-values from Mann-Whitney U tests if we have at least 2 groups
+                        if len(plot_data) >= 2:
+                            try:
+                                from scipy.stats import mannwhitneyu
+                                for i in range(len(plot_data) - 1):
+                                    for j in range(i + 1, len(plot_data)):
+                                        stat, p_value = mannwhitneyu(plot_data[i], plot_data[j])
+                                        plt.text((positions[i] + positions[j]) / 2, 
+                                                max(np.max(plot_data[i]), np.max(plot_data[j])) * 1.1,
+                                                f'p={p_value:.3f}',
+                                                ha='center')
+                            except Exception as e:
+                                print(f"Error calculating p-values: {str(e)}")
+                        
+                        plt.title(f'Change in {species_name} by {facet_var}')
+                        plt.ylabel('Delta (Acute - Prior)')
+                        plt.tight_layout()
+                        plt.savefig(figures_dir / f"{species_name.replace(' ', '_')}_delta_by_{facet_var}.pdf", bbox_inches='tight')
+                    plt.close()
+    
+    return delta_dfs
+
+def plot_subject_trajectory(abundance_df, metadata_df, species_indices, output_dir):
+    """
+    Create trajectory plots showing individual subject changes from Prior to Acute to Post.
+    
+    Parameters:
+    -----------
+    abundance_df : pandas.DataFrame
+        Taxa abundance DataFrame with taxa as index, samples as columns
+    metadata_df : pandas.DataFrame
+        Metadata DataFrame with samples as index
+    species_indices : dict
+        Dictionary mapping species names to their indices in the abundance DataFrame
+    output_dir : str
+        Directory to save plots
+        
+    Returns:
+    --------
+    None
+    """
+    print("\nCreating subject trajectory plots")
+    
+    # Get subject ID column
+    subject_col = 'SubjectID' if 'SubjectID' in metadata_df.columns else None
+    if not subject_col:
+        print("Error: SubjectID column not found in metadata")
+        return
+    
+    # Get timing column
+    time_var = 'Timing'
+    if time_var not in metadata_df.columns:
+        print(f"Error: {time_var} column not found in metadata")
+        return
+    
+    # Define time order
+    time_order = ['Prior', 'Acute', 'Post']
+    
+    # Output directory for figures
+    figures_dir = Path(output_dir) / "figures"
+    
+    # Process each species
+    for species_name, taxon in species_indices.items():
+        print(f"Creating trajectory plot for {species_name}")
+        
+        # Get all subjects that have at least 2 timepoints
+        subject_timepoints = {}
+        
+        # First, collect all available data points
+        for subject in metadata_df[subject_col].unique():
+            subject_samples = metadata_df[metadata_df[subject_col] == subject]
+            
+            # Get samples for each timepoint that exist in abundance data
+            timepoint_data = {}
+            for time_point in time_order:
+                if time_point in subject_samples[time_var].values:
+                    time_samples = subject_samples[subject_samples[time_var] == time_point].index
+                    valid_samples = [s for s in time_samples if s in abundance_df.columns]
+                    
+                    if valid_samples:
+                        # Use the first valid sample
+                        sample_id = valid_samples[0]
+                        abundance_value = abundance_df.loc[taxon, sample_id]
+                        timepoint_data[time_point] = {
+                            'sample_id': sample_id,
+                            'abundance': abundance_value
+                        }
+                        
+                        # Add metadata if available
+                        for col in ['Severity', 'Symptoms']:
+                            if col in metadata_df.columns:
+                                if sample_id in metadata_df.index and pd.notna(metadata_df.loc[sample_id, col]):
+                                    timepoint_data[time_point][col] = metadata_df.loc[sample_id, col]
+            
+            # Only include subjects with at least 2 timepoints
+            if len(timepoint_data) >= 2:
+                subject_timepoints[subject] = timepoint_data
+        
+        # Create the trajectory plot
+        plt.figure(figsize=(12, 8))
+        
+        # Map timepoints to x-axis positions
+        time_to_x = {time: i for i, time in enumerate(time_order)}
+        
+        # Process each subject
+        for subject, timepoints in subject_timepoints.items():
+            # Extract x and y coordinates for this subject
+            x_values = [time_to_x[time] for time in timepoints.keys()]
+            y_values = [data['abundance'] for time, data in timepoints.items()]
+            
+            # Get color based on metadata if available (using first available timepoint)
+            color = 'gray'  # default color
+            
+            if 'Severity' in next(iter(timepoints.values())):
+                severity = next(iter(timepoints.values()))['Severity']
+                if severity == 'Severe':
+                    color = 'red'
+                elif severity == 'Moderate':
+                    color = 'orange'
+                elif severity == 'Mild':
+                    color = 'blue'
+            
+            # Plot subject trajectory
+            plt.plot(x_values, y_values, 'o-', color=color, alpha=0.5, linewidth=1)
+        
+        # Add boxplots for each timepoint
+        boxplot_data = []
+        for time_point in time_order:
+            # Collect all abundance values for this timepoint
+            time_values = []
+            for subject, timepoints in subject_timepoints.items():
+                if time_point in timepoints:
+                    time_values.append(timepoints[time_point]['abundance'])
+            boxplot_data.append(time_values)
+        
+        # Add boxplots at each timepoint
+        boxplot_positions = list(range(len(time_order)))
+        boxplots = plt.boxplot(boxplot_data, positions=boxplot_positions, 
+                              widths=0.5, patch_artist=True)
+        
+        # Set box colors to light gray for better visibility of the trajectories
+        for box in boxplots['boxes']:
+            box.set(facecolor='lightgray', alpha=0.3)
+        
+        # Set axis labels and title
+        plt.xlabel('Timepoint')
+        plt.ylabel('Abundance')
+        plt.title(f'{species_name} Abundance Trajectory by Subject')
+        plt.xticks(boxplot_positions, time_order)
+        
+        # Add legend if we used colors
+        if 'Severity' in next(iter(next(iter(subject_timepoints.values())).values()), {}):
+            from matplotlib.patches import Patch
+            legend_elements = [
+                Patch(facecolor='red', label='Severe'),
+                Patch(facecolor='orange', label='Moderate'),
+                Patch(facecolor='blue', label='Mild'),
+                Patch(facecolor='gray', label='Unknown')
+            ]
+            plt.legend(handles=legend_elements, loc='upper right')
+        
+        # Save figure
+        plt.tight_layout()
+        output_file = figures_dir / f"{species_name.replace(' ', '_')}_subject_trajectory.pdf"
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        print(f"Saved trajectory plot to {output_file}")
+        plt.close()
+        
+        # Create faceted trajectory plots if we have metadata
+        for facet_var in ['Severity', 'Symptoms']:
+            # Check if at least one subject has this metadata
+            has_metadata = False
+            for subject, timepoints in subject_timepoints.items():
+                for time_point, data in timepoints.items():
+                    if facet_var in data:
+                        has_metadata = True
+                        break
+                if has_metadata:
+                    break
+            
+            if has_metadata:
+                # Get unique values for this variable
+                unique_values = set()
+                for subject, timepoints in subject_timepoints.items():
+                    for time_point, data in timepoints.items():
+                        if facet_var in data:
+                            unique_values.add(data[facet_var])
+                
+                # Define order for Symptoms if needed
+                if facet_var == 'Symptoms':
+                    symptoms_order = ['Asymptomatic', 'Mild', 'Severe']
+                    # Filter to valid categories
+                    ordered_values = [val for val in symptoms_order if val in unique_values]
+                else:
+                    ordered_values = sorted(unique_values)
+                
+                # Create a subplot for each value
+                fig, axes = plt.subplots(1, len(ordered_values), figsize=(15, 6), sharey=True)
+                if len(ordered_values) == 1:
+                    axes = [axes]  # Make sure axes is always a list
+                
+                # Process each group
+                for i, value in enumerate(ordered_values):
+                    ax = axes[i]
+                    
+                    # Collect subjects for this group
+                    group_subjects = []
+                    for subject, timepoints in subject_timepoints.items():
+                        # Check if any timepoint has this value
+                        for time_point, data in timepoints.items():
+                            if facet_var in data and data[facet_var] == value:
+                                group_subjects.append(subject)
+                                break
+                    
+                    # Plot trajectories for this group
+                    for subject in group_subjects:
+                        timepoints = subject_timepoints[subject]
+                        # Extract x and y coordinates for this subject
+                        x_values = [time_to_x[time] for time in timepoints.keys()]
+                        y_values = [data['abundance'] for time, data in timepoints.items()]
+                        ax.plot(x_values, y_values, 'o-', color='blue', alpha=0.5, linewidth=1)
+                    
+                    # Add boxplots for each timepoint
+                    boxplot_data = []
+                    for time_point in time_order:
+                        # Collect all abundance values for this timepoint and group
+                        time_values = []
+                        for subject in group_subjects:
+                            if subject in subject_timepoints and time_point in subject_timepoints[subject]:
+                                time_values.append(subject_timepoints[subject][time_point]['abundance'])
+                        boxplot_data.append(time_values)
+                    
+                    # Add boxplots at each timepoint
+                    boxplot_positions = list(range(len(time_order)))
+                    if any(len(values) > 0 for values in boxplot_data):
+                        boxplots = ax.boxplot(boxplot_data, positions=boxplot_positions, 
+                                             widths=0.5, patch_artist=True)
+                        # Set box colors
+                        for box in boxplots['boxes']:
+                            box.set(facecolor='lightgray', alpha=0.3)
+                    
+                    # Set title and x-axis labels
+                    ax.set_title(f'{value} (n={len(group_subjects)})')
+                    ax.set_xticks(boxplot_positions)
+                    ax.set_xticklabels(time_order)
+                    
+                    # Add ylabel only to the first subplot
+                    if i == 0:
+                        ax.set_ylabel('Abundance')
+                
+                # Set overall title
+                fig.suptitle(f'{species_name} Abundance Trajectory by {facet_var}', fontsize=14)
+                plt.tight_layout()
+                fig.subplots_adjust(top=0.85)
+                
+                # Save figure
+                output_file = figures_dir / f"{species_name.replace(' ', '_')}_trajectory_by_{facet_var}.pdf"
+                plt.savefig(output_file, dpi=300, bbox_inches='tight')
+                print(f"Saved faceted trajectory plot by {facet_var} to {output_file}")
+                plt.close(fig)
+
     
 def plot_scatter_correlation(abundance_df, metadata_df, species_indices, output_dir):
     """
@@ -1229,6 +1644,16 @@ def main():
             result_file = tables_dir / f"{time_point}_{symptoms_var}_results.csv"
             results_df.to_csv(result_file)
             print(f"Results for {time_point} by {symptoms_var} saved to {result_file}")
+    
+    # New analyses added:
+    
+    # Analysis of Prior to Acute delta
+    print("\n4.6 Analyzing changes from Prior to Acute timepoints")
+    delta_dfs = analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output_dir)
+    
+    # Create subject trajectory plots
+    print("\n4.7 Creating subject trajectory plots")
+    plot_subject_trajectory(abundance_df, metadata_df, species_indices, output_dir)
     
     # Include info about the normalization method used in the results
     if hasattr(args, 'normalization'):
