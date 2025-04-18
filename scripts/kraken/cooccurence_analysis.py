@@ -56,17 +56,23 @@ def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Analyze co-occurrence patterns in RSV microbiome data using Kraken/Bracken')
     parser.add_argument('--input-file', type=str, default='results/kraken_analysis/filtered_kraken_s_abundance.tsv',
-                       help='Path to filtered abundance table')
+                      help='Path to filtered abundance table')
     parser.add_argument('--metadata', type=str, default='metadata.csv',
-                       help='Path to metadata file')
+                      help='Path to metadata file')
     parser.add_argument('--output-dir', type=str, default='results/kraken_cooccurrence_analysis',
-                       help='Directory to save analysis results')
+                      help='Directory to save analysis results')
     parser.add_argument('--sample-id-column', type=str, default='SampleID',
-                       help='Column name for sample IDs in metadata')
+                      help='Column name for sample IDs in metadata')
     parser.add_argument('--target-species', type=str, nargs='+', 
-                        default=['Streptococcus pneumoniae', 'Haemophilus influenzae'],
-                        help='Target species to analyze for co-occurrence')
+                       default=['Streptococcus pneumoniae', 'Haemophilus influenzae', 'Moraxella catarrhalis'],
+                       help='Target species to analyze for co-occurrence')
+    parser.add_argument('--normalization', type=str, default='none',
+                      choices=['none', 'clr', 'rarefaction'],
+                      help='Normalization method to use')
+    parser.add_argument('--rarefaction-depth', type=int, default=None,
+                      help='Sequencing depth for rarefaction (default: use minimum sample depth)')
     return parser.parse_args()
+
 
 def load_metadata(metadata_file, sample_id_column='SampleID'):
     """
@@ -250,6 +256,73 @@ def perform_statistical_test(abundance_df, metadata_df, taxon, variable):
                 'p-value': np.nan,
                 'note': f'Test failed: {str(e)}'
             }
+
+def rarefy_abundance_data(abundance_df, rarefaction_depth=None, seed=42):
+    """
+    Rarefy abundance data to a specified sequencing depth.
+    
+    Parameters:
+    -----------
+    abundance_df : pandas.DataFrame
+        Taxa abundance DataFrame with taxa as index, samples as columns
+        Values should be raw counts (not percentages or normalized values)
+    rarefaction_depth : int, optional
+        Sequencing depth to rarefy to. If None, uses the minimum sample depth.
+    seed : int, optional
+        Random seed for reproducibility
+        
+    Returns:
+    --------
+    pandas.DataFrame
+        Rarefied abundance DataFrame
+    """
+    # Set random seed for reproducibility
+    np.random.seed(seed)
+    
+    # Make a copy of the input data
+    rarefied_df = abundance_df.copy()
+    
+    # Calculate the total counts for each sample
+    sample_totals = rarefied_df.sum(axis=0)
+    
+    # If no rarefaction depth is given, use the minimum sample total
+    if rarefaction_depth is None:
+        rarefaction_depth = int(sample_totals.min())
+        print(f"Using minimum sample depth: {rarefaction_depth}")
+    else:
+        # Always exclude samples with fewer reads than the rarefaction depth
+        samples_below_depth = sample_totals[sample_totals < rarefaction_depth].index.tolist()
+        if samples_below_depth:
+            print(f"Excluding {len(samples_below_depth)} samples with fewer reads than the rarefaction depth ({rarefaction_depth})")
+            print(f"Excluded samples: {samples_below_depth}")
+            rarefied_df = rarefied_df.drop(columns=samples_below_depth)
+            # Recalculate sample totals after dropping samples
+            sample_totals = rarefied_df.sum(axis=0)
+            print(f"Proceeding with {len(rarefied_df.columns)} samples")
+    
+    print(f"Rarefying to depth of {rarefaction_depth} reads per sample")
+    
+    # Perform rarefaction for each sample
+    for sample in rarefied_df.columns:
+        # Get current counts for this sample
+        counts = rarefied_df[sample].values
+        
+        # Create an array representing all individual reads
+        reads_pool = np.repeat(np.arange(len(counts)), counts.astype(int))
+        
+        # Randomly select reads up to the rarefaction depth
+        if len(reads_pool) > rarefaction_depth:
+            # Randomly select indices without replacement
+            selected_indices = np.random.choice(reads_pool, rarefaction_depth, replace=False)
+            
+            # Count occurrences of each taxon
+            rarefied_counts = np.bincount(selected_indices, minlength=len(counts))
+            
+            # Update the dataframe with rarefied counts
+            rarefied_df[sample] = rarefied_counts
+    
+    return rarefied_df
+
 
 def analyze_species_by_variable(abundance_df, metadata_df, species_indices, variable):
     """
@@ -741,93 +814,74 @@ def plot_co_occurrence_heatmap(abundance_df, metadata_df, species_indices, outpu
     --------
     None
     """
-    # Check if we have both species
+    # Check if we have at least two species
     if len(species_indices) < 2:
-        print("Need both species for co-occurrence heatmap")
+        print("Need at least two species for co-occurrence heatmap")
         return
     
     # Get common samples
     common_samples = list(set(abundance_df.columns).intersection(set(metadata_df.index)))
     
-    # Extract abundance for both species
+    # Extract abundance for species
     species_names = list(species_indices.keys())
-    species1 = species_names[0]
-    species2 = species_names[1]
     
-    taxon1 = species_indices[species1]
-    taxon2 = species_indices[species2]
+    # Create a dataframe to hold the data for the heatmap
+    plot_data = pd.DataFrame()
     
-    abundance1 = abundance_df.loc[taxon1, common_samples]
-    abundance2 = abundance_df.loc[taxon2, common_samples]
+    # Add data for each species that exists in the abundance dataframe
+    for species_name in species_names:
+        taxon = species_indices[species_name]
+        if taxon in abundance_df.index:
+            plot_data[species_name] = abundance_df.loc[taxon, common_samples]
     
-    # Create DataFrame for heatmap
-    heatmap_data = pd.DataFrame({
-        'Sample': common_samples,
-        species1: abundance1.values,
-        species2: abundance2.values
-    })
+    # If we don't have at least 2 species with data, we can't make a heatmap
+    if plot_data.shape[1] < 2:
+        print("Not enough species with data to create a heatmap")
+        return
     
-    # Get timing and clinical variables
-    time_var = 'Timing'
-    clinical_vars = ['Severity', 'Symptoms']
-    
-    for var in [time_var] + clinical_vars:
-        if var in metadata_df.columns:
-            heatmap_data[var] = [metadata_df.loc[s, var] if s in metadata_df.index else 'Unknown' for s in common_samples]
-    
-    # Sort by variables
-    sort_vars = [var for var in [time_var] + clinical_vars if var in heatmap_data.columns]
-    if sort_vars:
-        heatmap_data = heatmap_data.sort_values(sort_vars)
-    
-    # Convert to numeric for heatmap
-    plot_data = heatmap_data[[species1, species2]].apply(lambda x: np.log1p(x) if (x > 0).any() else x)
+    # Convert to numeric for heatmap (log transform if values are positive)
+    plot_data_log = plot_data.apply(lambda x: np.log1p(x) if (x > 0).any() else x)
     
     # Create figure
     fig, ax = plt.subplots(figsize=(12, 10))
     
     # Create heatmap
     ax = sns.heatmap(
-        plot_data.T,
+        plot_data_log.T,  # Transpose so species are rows
         cmap='YlGnBu',
         cbar_kws={'label': 'Log-transformed Abundance'},
         ax=ax
     )
     
-    # Add row labels
-    ax.set_yticklabels(species_names, rotation=0)
+    # The y-ticks are now automatically set to the correct number by seaborn
+    # Just modify the labels to use friendly names
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
     
-    # Add sample annotations if we have them
-    if sort_vars:
-        # Create a color list for each variable
-        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+    # Get time information if available
+    if 'Timing' in metadata_df.columns:
+        # Add time point labels above the heatmap
+        time_colors = {'Prior': '#1f77b4', 'Acute': '#ff7f0e', 'Post': '#2ca02c'}
         
-        # Add colored bars for each variable
-        for i, var in enumerate(sort_vars):
-            unique_values = sorted(heatmap_data[var].unique())
-            value_to_int = {val: j for j, val in enumerate(unique_values)}
-            
-            # Create color map
-            color_map = {val: colors[j % len(colors)] for j, val in enumerate(unique_values)}
-            
-            # Create row colors
-            row_colors = [color_map[val] for val in heatmap_data[var]]
-            
-            # Add colored bar above heatmap
-            for j, sample in enumerate(heatmap_data.index):
-                ax.add_patch(plt.Rectangle(
-                    (j, plot_data.shape[1] + i*0.2),
-                    1, 0.2,
-                    color=color_map[heatmap_data.loc[sample, var]],
-                    ec='none'
-                ))
-            
-            # Add legend
-            from matplotlib.patches import Patch
-            legend_elements = [Patch(facecolor=color_map[val], label=f'{var}: {val}') 
-                              for val in unique_values]
+        for i, sample in enumerate(common_samples):
+            if sample in metadata_df.index:
+                time_point = metadata_df.loc[sample, 'Timing']
+                if time_point in time_colors:
+                    ax.add_patch(plt.Rectangle(
+                        (i, plot_data.shape[1]),
+                        1, 0.2,
+                        color=time_colors[time_point],
+                        ec='none'
+                    ))
+        
+        # Add legend for time points
+        from matplotlib.patches import Patch
+        legend_elements = [Patch(facecolor=color, label=time) 
+                          for time, color in time_colors.items()
+                          if time in metadata_df['Timing'].values]
+        
+        if legend_elements:
             ax.legend(handles=legend_elements, loc='upper center', 
-                     bbox_to_anchor=(0.5, 1.15), ncol=len(unique_values))
+                     bbox_to_anchor=(0.5, 1.15), ncol=len(legend_elements))
     
     # Set title
     plt.title('Co-occurrence of Target Species', fontsize=14)
@@ -841,6 +895,7 @@ def plot_co_occurrence_heatmap(abundance_df, metadata_df, species_indices, outpu
     print(f"Saved co-occurrence heatmap to {output_file}")
     plt.close(fig)
 
+    
 def plot_scatter_correlation(abundance_df, metadata_df, species_indices, output_dir):
     """
     Create a scatter plot showing correlation between the two species.
@@ -1020,6 +1075,26 @@ def main():
         print(f"Error: Input file not found at {args.input_file}")
         return
     
+    # Apply normalization if requested
+    if hasattr(args, 'normalization'):
+        if args.normalization == 'rarefaction':
+            print("\nApplying rarefaction normalization")
+            original_shape = abundance_df.shape
+            abundance_df = rarefy_abundance_data(abundance_df, args.rarefaction_depth)
+            print(f"Data shape before rarefaction: {original_shape}")
+            print(f"Data shape after rarefaction: {abundance_df.shape}")
+        elif args.normalization == 'clr':
+            print("\nApplying CLR transformation")
+            # Add small pseudocount to zeros
+            df_pseudo = abundance_df.replace(0, np.nextafter(0, 1))
+            # Log transform
+            df_log = np.log(df_pseudo)
+            # Subtract column-wise mean (CLR transformation)
+            abundance_df = df_log.subtract(df_log.mean(axis=0), axis=1)
+            print(f"Applied CLR transformation to data")
+        else:
+            print("\nUsing raw counts (no normalization)")
+    
     # Load metadata
     print("\n2. Loading metadata")
     if os.path.exists(args.metadata):
@@ -1154,6 +1229,21 @@ def main():
             result_file = tables_dir / f"{time_point}_{symptoms_var}_results.csv"
             results_df.to_csv(result_file)
             print(f"Results for {time_point} by {symptoms_var} saved to {result_file}")
+    
+    # Include info about the normalization method used in the results
+    if hasattr(args, 'normalization'):
+        normalization_info = {
+            'method': args.normalization
+        }
+        if args.normalization == 'rarefaction' and args.rarefaction_depth:
+            normalization_info['rarefaction_depth'] = args.rarefaction_depth
+        
+        # Save normalization info
+        with open(output_dir / 'normalization_info.txt', 'w') as f:
+            for key, value in normalization_info.items():
+                f.write(f"{key}: {value}\n")
+        
+        print(f"\nNormalization method '{args.normalization}' info saved to {output_dir / 'normalization_info.txt'}")
     
     print("\nAnalysis complete!")
 

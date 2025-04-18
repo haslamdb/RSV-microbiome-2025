@@ -1,0 +1,4 @@
+,taxon,variable,test,statistic,p-value,mean_2,mean_0,mean_1,mean_3,mean_4,species_name,time_point
+0,Streptococcus.pneumoniae,Severity,Kruskal-Wallis,5.739209099101806,0.21948920419268328,241.73333333333332,89.78260869565217,115.22222222222223,93.33333333333333,1854.0,Streptococcus.pneumoniae,Prior
+1,Haemophilus.influenzae,Severity,Kruskal-Wallis,6.27177940677678,0.17975018844709575,593.6333333333333,225.17391304347825,56.22222222222222,346.0,5298.0,Haemophilus.influenzae,Prior
+2,Moraxella.catarrhalis,Severity,Kruskal-Wallis,6.78729681156787,0.14756471525779125,133.13333333333333,239.0,67.83333333333333,30.88888888888889,322.0,Moraxella.catarrhalis,Prior
