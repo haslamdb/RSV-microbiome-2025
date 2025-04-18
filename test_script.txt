@@ -1,4 +1,6 @@
 
+python scripts/kraken/cooccurence_analysis.py --input-file results/kraken_analysis/filtered_S_abundance.tsv --metadata metadata.csv --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" "Moraxella.catarrhalis" "Staphylococcus.aureus" --normalization clr
+
 python scripts/kraken/process_kraken_data.py  --bracken-dir ~/Documents/Alignments/KrakenAlignments/KrakenNew --output-dir
       results/kraken_analysis --taxonomic-level S --metadata metadata.csv
 
