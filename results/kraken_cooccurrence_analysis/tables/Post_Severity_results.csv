@@ -1,4 +1,4 @@
-,taxon,variable,test,statistic,p-value,mean_2,mean_3,mean_1,mean_0,mean_4,species_name,time_point
-0,Streptococcus.pneumoniae,Severity,Kruskal-Wallis,4.573623013648776,0.3339067358984436,145.4,144.2,143.7058823529412,136.0,12.0,Streptococcus.pneumoniae,Post
-1,Haemophilus.influenzae,Severity,Kruskal-Wallis,5.6090444647889015,0.2303093642087201,275.4,2.4,10.352941176470589,328.77777777777777,181.0,Haemophilus.influenzae,Post
-2,Moraxella.catarrhalis,Severity,Kruskal-Wallis,7.568840152047174,0.10871176525485517,122.36,33.0,429.8235294117647,178.05555555555554,0.0,Moraxella.catarrhalis,Post
+,taxon,variable,test,statistic,p-value,mean_2,mean_1,mean_0,mean_3,mean_4,species_name,time_point
+0,Streptococcus.pneumoniae,Severity,Kruskal-Wallis,2.798192510949974,0.5921447586419278,257.91452782966735,290.0766423004223,240.72069676263206,141.80653116833292,201.4158855903033,Streptococcus.pneumoniae,Post
+1,Haemophilus.influenzae,Severity,Kruskal-Wallis,2.1100522025244857,0.7155258500045022,118.78308590656962,-19.762916653479902,83.16180010856861,-73.71839534011171,204.05322026660713,Haemophilus.influenzae,Post
+2,Moraxella.catarrhalis,Severity,Kruskal-Wallis,7.110439805057467,0.13016582091965181,119.11524106216055,246.24501184381958,240.83863458310924,33.756425812841734,-548.5416392275426,Moraxella.catarrhalis,Post

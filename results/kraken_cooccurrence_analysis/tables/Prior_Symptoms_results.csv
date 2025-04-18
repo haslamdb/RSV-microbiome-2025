@@ -1,4 +1,4 @@
 ,taxon,variable,test,statistic,p-value,mean_Mild,mean_Asymptomatic,mean_Severe,species_name,time_point
-0,Streptococcus.pneumoniae,Symptoms,Kruskal-Wallis,2.3740946433367767,0.30512085905486486,194.29166666666666,89.78260869565217,269.4,Streptococcus.pneumoniae,Prior
-1,Haemophilus.influenzae,Symptoms,Kruskal-Wallis,1.7087693488208169,0.4255449592406342,392.1041666666667,225.17391304347825,841.2,Haemophilus.influenzae,Prior
-2,Moraxella.catarrhalis,Symptoms,Kruskal-Wallis,3.8103863089115784,0.14879389964160236,108.64583333333333,239.0,60.0,Moraxella.catarrhalis,Prior
+0,Streptococcus.pneumoniae,Symptoms,Kruskal-Wallis,1.5328954301169802,0.4646607474417602,275.82882605944565,173.3757170464506,293.7252414481328,Streptococcus.pneumoniae,Prior
+1,Haemophilus.influenzae,Symptoms,Kruskal-Wallis,4.193123807182076,0.12287816983789392,60.72993537329573,204.2344958885948,-6.338838882722496,Haemophilus.influenzae,Prior
+2,Moraxella.catarrhalis,Symptoms,Kruskal-Wallis,1.9831594599974096,0.37099016357589515,184.11719179512644,298.70783757007564,217.66736104226794,Moraxella.catarrhalis,Prior
