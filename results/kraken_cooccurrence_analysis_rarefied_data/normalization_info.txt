@@ -1,0 +1,2 @@
+method: rarefaction
+rarefaction_depth: 25000

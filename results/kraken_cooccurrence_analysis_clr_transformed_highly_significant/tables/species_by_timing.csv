@@ -1,0 +1,4 @@
+,taxon,variable,test,statistic,p-value,mean_Acute,mean_Prior,mean_Post,species_name
+0,Streptococcus.pneumoniae,Timing,Kruskal-Wallis,9.419253285368882,0.00900814020971363,289.2850400833466,248.36002530733708,248.77112694037805,Streptococcus.pneumoniae
+1,Haemophilus.influenzae,Timing,Kruskal-Wallis,11.192390453207281,0.0037119600496462444,189.07564177272292,94.14465476856073,58.299611145307736,Haemophilus.influenzae
+2,Moraxella.catarrhalis,Timing,Kruskal-Wallis,17.428698829079508,0.00016421247087344978,298.0349632546053,221.2940254224782,164.30935364175622,Moraxella.catarrhalis
