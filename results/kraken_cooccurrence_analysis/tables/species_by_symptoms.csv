@@ -1,5 +1,5 @@
-,taxon,variable,test,statistic,p-value,mean_Mild,mean_Severe,mean_Asymptomatic,species_name,p-adjusted
-0,Streptococcus.pneumoniae,Symptoms,Kruskal-Wallis,,,0.004726539847608334,0.006419071196111885,0.0031664591311483872,Streptococcus.pneumoniae,
-1,Haemophilus.influenzae,Symptoms,Kruskal-Wallis,,,-0.0014892056043591358,0.005507993507385844,0.001283329909173094,Haemophilus.influenzae,
-2,Moraxella.catarrhalis,Symptoms,Kruskal-Wallis,,,0.004708089686089168,0.0017605293402899282,0.003899536900975877,Moraxella.catarrhalis,
-3,Staphylococcus.aureus,Symptoms,Kruskal-Wallis,1.139025921409143,0.5658009388950129,0.016037236985642238,0.012527023994718358,0.012928501351592696,Staphylococcus.aureus,
+,taxon,variable,test,statistic,p-value,mean_Mild,mean_Asymptomatic,mean_Severe,species_name
+0,Streptococcus.pneumoniae,Symptoms,Kruskal-Wallis,3.122400569448473,0.20988399939372407,290.06111475739476,215.8476393650419,237.0292966852044,Streptococcus.pneumoniae
+1,Haemophilus.influenzae,Symptoms,Kruskal-Wallis,5.600612120538244,0.06079145392892213,99.14317206761974,193.22933356820883,22.209329341835705,Haemophilus.influenzae
+2,Moraxella.catarrhalis,Symptoms,Kruskal-Wallis,1.980227008033694,0.3715345179684987,216.08370595865998,283.3086234060933,182.31093408659436,Moraxella.catarrhalis
+3,Staphylococcus.aureus,Symptoms,Kruskal-Wallis,1.1730446246452857,0.556258417894538,329.67387815366686,353.26183331981053,345.68049201726893,Staphylococcus.aureus

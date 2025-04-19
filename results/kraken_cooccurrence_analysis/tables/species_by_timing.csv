@@ -1,5 +1,5 @@
-,taxon,variable,test,statistic,p-value,mean_Prior,mean_Acute,mean_Post,species_name,p-adjusted
-0,Streptococcus.pneumoniae,Timing,Kruskal-Wallis,,,0.004436402153207367,0.0046792871915368,0.004427449180913152,Streptococcus.pneumoniae,
-1,Haemophilus.influenzae,Timing,Kruskal-Wallis,,,-0.0009258249034371039,0.0009947402608752626,7.624180352400554e-05,Haemophilus.influenzae,
-2,Moraxella.catarrhalis,Timing,Kruskal-Wallis,,,0.006012228778919157,0.003656878593226589,0.0023583365178445185,Moraxella.catarrhalis,
-3,Staphylococcus.aureus,Timing,Kruskal-Wallis,6.400558280651239,0.04075082719140861,0.01773235296272234,0.01106406874109342,0.015551421309201612,Staphylococcus.aureus,
+,taxon,variable,test,statistic,p-value,mean_Acute,mean_Post,mean_Prior,species_name
+0,Streptococcus.pneumoniae,Timing,Kruskal-Wallis,9.419253285368995,0.00900814020971312,289.28504008334653,248.77112694037802,248.36002530733708,Streptococcus.pneumoniae
+1,Haemophilus.influenzae,Timing,Kruskal-Wallis,11.192390453207281,0.0037119600496462444,189.0756417727229,58.299611145307736,94.14465476856074,Haemophilus.influenzae
+2,Moraxella.catarrhalis,Timing,Kruskal-Wallis,17.428698829079394,0.00016421247087345902,298.03496325460515,164.30935364175625,221.29402542247814,Moraxella.catarrhalis
+3,Staphylococcus.aureus,Timing,Kruskal-Wallis,20.986699498861753,2.772018390095817e-05,391.0087296662091,315.0794713588176,305.26409973445936,Staphylococcus.aureus
