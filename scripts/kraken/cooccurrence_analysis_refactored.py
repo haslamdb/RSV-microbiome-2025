@@ -1523,9 +1523,11 @@ def run_analysis_pipeline(args):
             logging.info(f"Data shape before rarefaction: {original_shape}")
             logging.info(f"Data shape after rarefaction: {abundance_df.shape}")
         elif args.normalization == 'clr':
-        elif args.normalization == 'tss':
-            logging.info("Applying Total Sum Scaling (TSS) normalization")
-            abundance_df = abundance_df.div(abundance_df.sum(axis=0), axis=1) * 1e6
+                logging.info("\nApplying CLR transformation")
+                df_pseudo = abundance_df.replace(0, np.nextafter(0, 1))
+                df_log = np.log(df_pseudo)
+                abundance_df = df_log.subtract(df_log.mean(axis=0), axis=1)
+                logging.info(f"Applied CLR transformation to data")
             logging.info(f"TSS normalization applied to {abundance_df.shape[1]} samples")
 
             logging.info("\nApplying CLR transformation")
@@ -1535,7 +1537,10 @@ def run_analysis_pipeline(args):
             df_log = np.log(df_pseudo)
             # Subtract column-wise mean (CLR transformation)
             abundance_df = df_log.subtract(df_log.mean(axis=0), axis=1)
-            logging.info(f"Applied CLR transformation to data")
+        elif args.normalization == 'tss':
+                logging.info("Applying Total Sum Scaling (TSS) normalization")
+                abundance_df = abundance_df.div(abundance_df.sum(axis=0), axis=1) * 1e6
+                logging.info(f"TSS normalization applied to {abundance_df.shape[1]} samples")
         else:
             logging.info("\nUsing raw counts (no normalization)")
     
