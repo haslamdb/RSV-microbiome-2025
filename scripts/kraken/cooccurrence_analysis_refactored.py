@@ -13,21 +13,20 @@ This script:
 5. Generates visualizations regardless of statistical significance
 
 Usage:
-    python cooccurrence_analysis.py [--input-file FILTERED_ABUNDANCE_FILE] [--metadata METADATA_FILE]
+    python 05_cooccurence_analysis.py [--input-file FILTERED_ABUNDANCE_FILE] [--metadata METADATA_FILE]
 """
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 import os
 import sys
-import re
 import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-from scipy.stats import mannwhitneyu, kruskal, spearmanr, ttest_1samp
+from scipy.stats import mannwhitneyu, kruskal, spearmanr
 from statsmodels.stats.multitest import multipletests
 import traceback
 
@@ -69,12 +68,10 @@ def parse_args():
     parser.add_argument('--target-species', type=str, nargs='+', 
                        default=['Streptococcus pneumoniae', 'Haemophilus influenzae', 'Moraxella catarrhalis'],
                        help='Target species to analyze for co-occurrence')
-    parser.add_argument('--only-cooccurrence', action='store_true', 
-                       help='Run only co-occurrence analysis')
-    parser.add_argument('--skip-plots', action='store_true', 
-                       help='Skip all plotting steps')
+    parser.add_argument('--only-cooccurrence', action='store_true', help='Run only co-occurrence analysis')
+    parser.add_argument('--skip-plots', action='store_true', help='Skip all plotting steps')
     parser.add_argument('--normalization', type=str, default='none',
-                      choices=['none', 'clr', 'rarefaction', 'tss'],
+                      choices=['none', 'clr', 'rarefaction'],
                       help='Normalization method to use')
     parser.add_argument('--rarefaction-depth', type=int, default=None,
                       help='Sequencing depth for rarefaction (default: use minimum sample depth)')
@@ -118,7 +115,7 @@ def load_metadata(metadata_file, sample_id_column='SampleID'):
         return metadata_df
     
     except Exception as e:
-        logging.error(f"Error loading metadata file: {str(e)}")
+        logging.info(f"Error loading metadata file: {str(e)}")
         return pd.DataFrame()
 
 def find_species_in_data(abundance_df, species_names):
@@ -140,9 +137,8 @@ def find_species_in_data(abundance_df, species_names):
     species_indices = {}
     
     for species in species_names:
-        # Use word boundaries in regex for more precise matching
-        pattern = r'\b' + re.escape(species.lower()) + r'\b'
-        matches = [idx for idx in abundance_df.index if re.search(pattern, idx.lower())]
+        
+        matches = [idx for idx in abundance_df.index if re.search(r'\\b' + re.escape(species.lower()) + r'\\b', idx.lower())]
 
         if matches:
             # Use the first match as the index
@@ -151,7 +147,7 @@ def find_species_in_data(abundance_df, species_names):
             if len(matches) > 1:
                 logging.info(f"  Note: Multiple matches found: {matches}")
         else:
-            logging.warning(f"Could not find '{species}' in the data")
+            logging.info(f"Warning: Could not find '{species}' in the data")
     
     return species_indices
 
@@ -333,58 +329,6 @@ def rarefy_abundance_data(abundance_df, rarefaction_depth=None, seed=42):
     
     return rarefied_df
 
-def apply_tss_normalization(abundance_df):
-    """
-    Apply Total Sum Scaling (TSS) normalization to abundance data (counts per million).
-    
-    Parameters:
-    -----------
-    abundance_df : pandas.DataFrame
-        Taxa abundance DataFrame with taxa as index, samples as columns
-        
-    Returns:
-    --------
-    pandas.DataFrame
-        TSS normalized abundance DataFrame
-    """
-    # Make a copy of the input data
-    normalized_df = abundance_df.copy()
-    
-    # Calculate the sum of counts for each sample
-    sample_sums = normalized_df.sum(axis=0)
-    
-    # Divide each count by the sample sum and multiply by 1e6 (counts per million)
-    normalized_df = normalized_df.div(sample_sums, axis=1) * 1e6
-    
-    return normalized_df
-
-def apply_clr_transformation(abundance_df):
-    """
-    Apply Centered Log-Ratio (CLR) transformation to abundance data.
-    
-    Parameters:
-    -----------
-    abundance_df : pandas.DataFrame
-        Taxa abundance DataFrame with taxa as index, samples as columns
-        
-    Returns:
-    --------
-    pandas.DataFrame
-        CLR transformed abundance DataFrame
-    """
-    # Make a copy of the input data
-    transformed_df = abundance_df.copy()
-    
-    # Add small pseudocount to zeros
-    df_pseudo = transformed_df.replace(0, np.nextafter(0, 1))
-    
-    # Log transform
-    df_log = np.log(df_pseudo)
-    
-    # Subtract column-wise mean (CLR transformation)
-    transformed_df = df_log.subtract(df_log.mean(axis=0), axis=1)
-    
-    return transformed_df
 
 def analyze_species_by_variable(abundance_df, metadata_df, species_indices, variable):
     """
@@ -418,22 +362,14 @@ def analyze_species_by_variable(abundance_df, metadata_df, species_indices, vari
     results_df = pd.DataFrame(results)
 
     # Apply multiple testing correction
-    if not results_df.empty and 'p-value' in results_df.columns and not results_df['p-value'].isna().all():
+    if not results_df.empty and 'p-value' in results_df.columns:
         try:
-            # Filter out NaN values for correction
-            valid_pvals = ~results_df['p-value'].isna()
-            if valid_pvals.any():
-                p_values = results_df.loc[valid_pvals, 'p-value'].values
-                corrected = multipletests(p_values, method='fdr_bh')
-                
-                # Create a column for adjusted p-values (initialize with NaN)
-                results_df['p-adjusted'] = np.nan
-                
-                # Update only the valid positions
-                results_df.loc[valid_pvals, 'p-adjusted'] = corrected[1]
+            corrected = multipletests(results_df['p-value'], method='fdr_bh')
+            results_df['p-adjusted'] = corrected[1]
         except Exception as e:
             logging.warning(f"Could not apply multiple testing correction: {str(e)}")
 
+    
     return results_df
 
 def analyze_species_by_timepoint_and_variable(abundance_df, metadata_df, species_indices, time_var, group_var):
@@ -494,22 +430,14 @@ def analyze_species_by_timepoint_and_variable(abundance_df, metadata_df, species
         # Convert to DataFrame
         results_df = pd.DataFrame(results)
 
-        # Apply multiple testing correction
-        if not results_df.empty and 'p-value' in results_df.columns and not results_df['p-value'].isna().all():
-            try:
-                # Filter out NaN values for correction
-                valid_pvals = ~results_df['p-value'].isna()
-                if valid_pvals.any():
-                    p_values = results_df.loc[valid_pvals, 'p-value'].values
-                    corrected = multipletests(p_values, method='fdr_bh')
-                    
-                    # Create a column for adjusted p-values (initialize with NaN)
-                    results_df['p-adjusted'] = np.nan
-                    
-                    # Update only the valid positions
-                    results_df.loc[valid_pvals, 'p-adjusted'] = corrected[1]
-            except Exception as e:
-                logging.warning(f"Could not apply multiple testing correction: {str(e)}")
+    # Apply multiple testing correction
+    if not results_df.empty and 'p-value' in results_df.columns:
+        try:
+            corrected = multipletests(results_df['p-value'], method='fdr_bh')
+            results_df['p-adjusted'] = corrected[1]
+        except Exception as e:
+            logging.warning(f"Could not apply multiple testing correction: {str(e)}")
+
         
         # Store results
         time_results[time_point] = results_df
@@ -1016,13 +944,13 @@ def analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output
     # Get subject ID column
     subject_col = 'SubjectID' if 'SubjectID' in metadata_df.columns else None
     if not subject_col:
-        logging.error("SubjectID column not found in metadata")
+        logging.info("Error: SubjectID column not found in metadata")
         return None
     
     # Get timing column
     time_var = 'Timing'
     if time_var not in metadata_df.columns:
-        logging.error(f"{time_var} column not found in metadata")
+        logging.info(f"Error: {time_var} column not found in metadata")
         return None
     
     # Filter to only include samples from Prior and Acute timepoints
@@ -1072,9 +1000,6 @@ def analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output
     
     # Convert nested dictionary to DataFrames for easier analysis
     delta_dfs = {}
-    tables_dir = Path(output_dir) / "tables"
-    figures_dir = Path(output_dir) / "figures"
-    
     for species_name in deltas:
         # Convert to DataFrame
         df_data = [data for subject, data in deltas[species_name].items()]
@@ -1083,11 +1008,13 @@ def analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output
             delta_dfs[species_name] = delta_df
             
             # Save to file
+            tables_dir = Path(output_dir) / "tables"
             delta_file = tables_dir / f"{species_name.replace(' ', '_')}_prior_acute_delta.csv"
             delta_df.to_csv(delta_file, index=False)
             logging.info(f"Delta analysis for {species_name} saved to {delta_file}")
             
             # Create visualizations
+            figures_dir = Path(output_dir) / "figures"
             
             # 1. Simple boxplot of delta values
             plt.figure(figsize=(8, 6))
@@ -1099,6 +1026,7 @@ def analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output
                         delta_df['delta'].values, color='black', alpha=0.5)
             
             # Add p-value from one-sample t-test against 0
+            from scipy.stats import ttest_1samp
             try:
                 t_stat, p_value = ttest_1samp(delta_df['delta'].values, 0)
                 plt.title(f'Change in {species_name} from Prior to Acute\np={p_value:.3f}')
@@ -1191,13 +1119,13 @@ def plot_subject_trajectory(abundance_df, metadata_df, species_indices, output_d
     # Get subject ID column
     subject_col = 'SubjectID' if 'SubjectID' in metadata_df.columns else None
     if not subject_col:
-        logging.error("SubjectID column not found in metadata")
+        logging.info("Error: SubjectID column not found in metadata")
         return
     
     # Get timing column
     time_var = 'Timing'
     if time_var not in metadata_df.columns:
-        logging.error(f"{time_var} column not found in metadata")
+        logging.info(f"Error: {time_var} column not found in metadata")
         return
     
     # Define time order
@@ -1512,9 +1440,11 @@ def plot_scatter_correlation(abundance_df, metadata_df, species_indices, output_
     logging.info(f"Saved correlation plot to {output_file}")
     plt.close()
 
-
 def run_analysis_pipeline(args):
     """Main function for analyzing species co-occurrence in microbiome data."""
+    # Parse arguments
+    args = parse_args()
+    
     # Set up output directories
     output_dir = Path(args.output_dir)
     tables_dir = output_dir / "tables"
@@ -1578,29 +1508,41 @@ def run_analysis_pipeline(args):
             if has_taxonomy_pattern or has_species_dot_format:
                 logging.info(f"Data appears to be in the correct format with {len(abundance_df.index)} taxa and {len(abundance_df.columns)} samples")
             else:
-                logging.warning("Data format unclear. Attempting to proceed, but results may not be as expected.")
-                logging.info(f"Ideal format: Taxa as rows, samples as columns. Current shape: {abundance_df.shape}")
+                logging.info("WARNING: Data format unclear. Attempting to proceed, but results may not be as expected.")
+                logging.info("Ideal format: Taxa as rows, samples as columns. Current shape:", abundance_df.shape)
     else:
-        logging.error(f"Input file not found at {args.input_file}")
-        return None
+        logging.info(f"Error: Input file not found at {args.input_file}")
+        return
     
     # Apply normalization if requested
-    if args.normalization == 'rarefaction':
-        logging.info("\nApplying rarefaction normalization")
-        original_shape = abundance_df.shape
-        abundance_df = rarefy_abundance_data(abundance_df, args.rarefaction_depth)
-        logging.info(f"Data shape before rarefaction: {original_shape}")
-        logging.info(f"Data shape after rarefaction: {abundance_df.shape}")
-    elif args.normalization == 'clr':
-        logging.info("\nApplying CLR transformation")
-        abundance_df = apply_clr_transformation(abundance_df)
-        logging.info(f"Applied CLR transformation to data")
-    elif args.normalization == 'tss':
-        logging.info("\nApplying Total Sum Scaling (TSS) normalization")
-        abundance_df = apply_tss_normalization(abundance_df)
-        logging.info(f"TSS normalization applied to {abundance_df.shape[1]} samples")
-    else:
-        logging.info("\nUsing raw counts (no normalization)")
+    if hasattr(args, 'normalization'):
+        if args.normalization == 'rarefaction':
+            logging.info("\nApplying rarefaction normalization")
+            original_shape = abundance_df.shape
+            abundance_df = rarefy_abundance_data(abundance_df, args.rarefaction_depth)
+            logging.info(f"Data shape before rarefaction: {original_shape}")
+            logging.info(f"Data shape after rarefaction: {abundance_df.shape}")
+        elif args.normalization == 'clr':
+                logging.info("\nApplying CLR transformation")
+                df_pseudo = abundance_df.replace(0, np.nextafter(0, 1))
+                df_log = np.log(df_pseudo)
+                abundance_df = df_log.subtract(df_log.mean(axis=0), axis=1)
+                logging.info(f"Applied CLR transformation to data")
+                logging.info(f"TSS normalization applied to {abundance_df.shape[1]} samples")
+    
+                logging.info("\nApplying CLR transformation")
+            # Add small pseudocount to zeros
+                df_pseudo = abundance_df.replace(0, np.nextafter(0, 1))
+            # Log transform
+                df_log = np.log(df_pseudo)
+            # Subtract column-wise mean (CLR transformation)
+                abundance_df = df_log.subtract(df_log.mean(axis=0), axis=1)
+        elif args.normalization == 'tss':
+            logging.info("Applying Total Sum Scaling (TSS) normalization")
+            abundance_df = abundance_df.div(abundance_df.sum(axis=0), axis=1) * 1e6
+            logging.info(f"TSS normalization applied to {abundance_df.shape[1]} samples")
+        else:
+            logging.info("\nUsing raw counts (no normalization)")
     
     # Load metadata
     logging.info("\n2. Loading metadata")
@@ -1608,8 +1550,8 @@ def run_analysis_pipeline(args):
         metadata_df = load_metadata(args.metadata, args.sample_id_column)
         
         if metadata_df.empty:
-            logging.error("Could not load metadata")
-            return None
+            logging.info("Error: Could not load metadata")
+            return
             
         logging.info(f"Loaded metadata for {len(metadata_df)} samples")
         
@@ -1625,10 +1567,10 @@ def run_analysis_pipeline(args):
                 missing_vars.append(var)
                 
         if missing_vars:
-            logging.warning(f"The following variables are missing from metadata: {missing_vars}")
+            logging.info(f"Warning: The following variables are missing from metadata: {missing_vars}")
     else:
-        logging.error(f"Metadata file not found at {args.metadata}")
-        return None
+        logging.info(f"Error: Metadata file not found at {args.metadata}")
+        return
     
     # Find the target species in the data
     logging.info("\n3. Finding target species in the data")
@@ -1636,173 +1578,137 @@ def run_analysis_pipeline(args):
     species_indices = find_species_in_data(abundance_df, target_species)
     
     if not species_indices:
-        logging.error("Could not find any target species in the data")
-        return None
+        logging.info("Error: Could not find any target species in the data")
+        return
     
-    # If only co-occurrence analysis is requested, skip other analyses
-    if args.only_cooccurrence:
-        logging.info("\nSkipping individual species analyses and performing only co-occurrence analysis")
-        if len(species_indices) >= 2:
-            logging.info("Analyzing co-occurrence patterns")
-            co_occurrence_results = analyze_co_occurrence(abundance_df, metadata_df, species_indices)
-            
-            if co_occurrence_results:
-                # Save results
-                result_file = tables_dir / 'co_occurrence_results.csv'
-                pd.DataFrame(co_occurrence_results['co_occurrence_rates']).T.to_csv(result_file)
-                logging.info(f"Co-occurrence results saved to {result_file}")
-                
-                # Create visualizations if not skipped
-                if not args.skip_plots:
-                    logging.info("Creating co-occurrence visualizations")
-                    plot_co_occurrence_heatmap(abundance_df, metadata_df, species_indices, figures_dir)
-                    plot_scatter_correlation(abundance_df, metadata_df, species_indices, figures_dir)
-        else:
-            logging.error("At least two species are required for co-occurrence analysis")
-            return None
-    else:
-        # Perform full analysis pipeline
+    # Perform analyses
+    logging.info("\n4. Performing statistical analyses")
+    
+    # Analysis by timing
+    logging.info("\n4.1 Analyzing species abundance across timing")
+    timing_results = analyze_species_by_variable(abundance_df, metadata_df, species_indices, time_var)
+    
+    if not timing_results.empty:
+        # Save results
+        timing_file = tables_dir / 'species_by_timing.csv'
+        timing_results.to_csv(timing_file)
+        logging.info(f"Timing analysis results saved to {timing_file}")
         
-        # Analysis by timing
-        logging.info("\n4.1 Analyzing species abundance across timing")
-        timing_results = analyze_species_by_variable(abundance_df, metadata_df, species_indices, time_var)
+        # Create plots
+        logging.info("Creating boxplots for species abundance by timing")
+        plot_species_by_time(abundance_df, metadata_df, species_indices, time_var, figures_dir)
+    
+    # Analysis by severity
+    if severity_var in metadata_df.columns:
+        logging.info(f"\n4.2 Analyzing species abundance by {severity_var}")
+        severity_results = analyze_species_by_variable(abundance_df, metadata_df, species_indices, severity_var)
         
-        if not timing_results.empty:
+        if not severity_results.empty:
             # Save results
-            timing_file = tables_dir / 'species_by_timing.csv'
-            timing_results.to_csv(timing_file)
-            logging.info(f"Timing analysis results saved to {timing_file}")
+            severity_file = tables_dir / 'species_by_severity.csv'
+            severity_results.to_csv(severity_file)
+            logging.info(f"Severity analysis results saved to {severity_file}")
             
-            # Create plots if not skipped
-            if not args.skip_plots:
-                logging.info("Creating boxplots for species abundance by timing")
-                plot_species_by_time(abundance_df, metadata_df, species_indices, time_var, figures_dir)
+            # Create plots for each species by severity
+            for species_name, taxon in species_indices.items():
+                try:
+                    output_file = figures_dir / f"{species_name.replace(' ', '_')}_by_{severity_var}.pdf"
+                    plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, severity_var, output_file)
+                except Exception as e:
+                    logging.info(f"Error creating plot for {species_name} by {severity_var}: {str(e)}")
+    
+    # Analysis by symptoms
+    if symptoms_var in metadata_df.columns:
+        logging.info(f"\n4.3 Analyzing species abundance by {symptoms_var}")
+        symptoms_results = analyze_species_by_variable(abundance_df, metadata_df, species_indices, symptoms_var)
         
-        # Analysis by severity
-        if severity_var in metadata_df.columns:
-            logging.info(f"\n4.2 Analyzing species abundance by {severity_var}")
-            severity_results = analyze_species_by_variable(abundance_df, metadata_df, species_indices, severity_var)
+        if not symptoms_results.empty:
+            # Save results
+            symptoms_file = tables_dir / 'species_by_symptoms.csv'
+            symptoms_results.to_csv(symptoms_file)
+            logging.info(f"Symptoms analysis results saved to {symptoms_file}")
             
-            if not severity_results.empty:
-                # Save results
-                severity_file = tables_dir / 'species_by_severity.csv'
-                severity_results.to_csv(severity_file)
-                logging.info(f"Severity analysis results saved to {severity_file}")
-                
-                # Create plots for each species by severity if not skipped
-                if not args.skip_plots:
-                    for species_name, taxon in species_indices.items():
-                        try:
-                            output_file = figures_dir / f"{species_name.replace(' ', '_')}_by_{severity_var}.pdf"
-                            plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, severity_var, output_file)
-                        except Exception as e:
-                            logging.error(f"Error creating plot for {species_name} by {severity_var}: {str(e)}")
+            # Create plots for each species by symptoms
+            for species_name, taxon in species_indices.items():
+                try:
+                    output_file = figures_dir / f"{species_name.replace(' ', '_')}_by_{symptoms_var}.pdf"
+                    plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, symptoms_var, output_file)
+                except Exception as e:
+                    logging.info(f"Error creating plot for {species_name} by {symptoms_var}: {str(e)}")
+    
+    # Co-occurrence analysis
+    if len(species_indices) >= 2:
+        logging.info("\n4.4 Analyzing co-occurrence patterns")
+        co_occurrence_results = analyze_co_occurrence(abundance_df, metadata_df, species_indices)
         
-        # Analysis by symptoms
-        if symptoms_var in metadata_df.columns:
-            logging.info(f"\n4.3 Analyzing species abundance by {symptoms_var}")
-            symptoms_results = analyze_species_by_variable(abundance_df, metadata_df, species_indices, symptoms_var)
+        if co_occurrence_results:
+            # Save results
+            result_file = tables_dir / 'co_occurrence_results.csv'
+            pd.DataFrame(co_occurrence_results['co_occurrence_rates']).T.to_csv(result_file)
+            logging.info(f"Co-occurrence results saved to {result_file}")
             
-            if not symptoms_results.empty:
-                # Save results
-                symptoms_file = tables_dir / 'species_by_symptoms.csv'
-                symptoms_results.to_csv(symptoms_file)
-                logging.info(f"Symptoms analysis results saved to {symptoms_file}")
-                
-                # Create plots for each species by symptoms if not skipped
-                if not args.skip_plots:
-                    for species_name, taxon in species_indices.items():
-                        try:
-                            output_file = figures_dir / f"{species_name.replace(' ', '_')}_by_{symptoms_var}.pdf"
-                            plot_taxa_facet(abundance_df, metadata_df, taxon, time_var, symptoms_var, output_file)
-                        except Exception as e:
-                            logging.error(f"Error creating plot for {species_name} by {symptoms_var}: {str(e)}")
+            # Create visualizations
+            logging.info("Creating co-occurrence visualizations")
+            plot_co_occurrence_heatmap(abundance_df, metadata_df, species_indices, figures_dir)
+            plot_scatter_correlation(abundance_df, metadata_df, species_indices, figures_dir)
+    
+    # Analysis by timepoint and severity/symptoms
+    logging.info("\n4.5 Analyzing species abundance by severity and symptoms at each time point")
+    
+    # By severity
+    if severity_var in metadata_df.columns:
+        severity_time_results = analyze_species_by_timepoint_and_variable(
+            abundance_df, metadata_df, species_indices, time_var, severity_var
+        )
         
-        # Co-occurrence analysis
-        if len(species_indices) >= 2:
-            logging.info("\n4.4 Analyzing co-occurrence patterns")
-            co_occurrence_results = analyze_co_occurrence(abundance_df, metadata_df, species_indices)
-            
-            if co_occurrence_results:
-                # Save results
-                result_file = tables_dir / 'co_occurrence_results.csv'
-                pd.DataFrame(co_occurrence_results['co_occurrence_rates']).T.to_csv(result_file)
-                logging.info(f"Co-occurrence results saved to {result_file}")
-                
-                # Create visualizations if not skipped
-                if not args.skip_plots:
-                    logging.info("Creating co-occurrence visualizations")
-                    plot_co_occurrence_heatmap(abundance_df, metadata_df, species_indices, figures_dir)
-                    plot_scatter_correlation(abundance_df, metadata_df, species_indices, figures_dir)
+        for time_point, results_df in severity_time_results.items():
+            # Save results
+            result_file = tables_dir / f"{time_point}_{severity_var}_results.csv"
+            results_df.to_csv(result_file)
+            logging.info(f"Results for {time_point} by {severity_var} saved to {result_file}")
+    
+    # By symptoms
+    if symptoms_var in metadata_df.columns:
+        symptoms_time_results = analyze_species_by_timepoint_and_variable(
+            abundance_df, metadata_df, species_indices, time_var, symptoms_var
+        )
         
-        # Analysis by timepoint and severity/symptoms
-        logging.info("\n4.5 Analyzing species abundance by severity and symptoms at each time point")
-        
-        # By severity
-        if severity_var in metadata_df.columns:
-            severity_time_results = analyze_species_by_timepoint_and_variable(
-                abundance_df, metadata_df, species_indices, time_var, severity_var
-            )
-            
-            for time_point, results_df in severity_time_results.items():
-                # Save results
-                result_file = tables_dir / f"{time_point}_{severity_var}_results.csv"
-                results_df.to_csv(result_file)
-                logging.info(f"Results for {time_point} by {severity_var} saved to {result_file}")
-        
-        # By symptoms
-        if symptoms_var in metadata_df.columns:
-            symptoms_time_results = analyze_species_by_timepoint_and_variable(
-                abundance_df, metadata_df, species_indices, time_var, symptoms_var
-            )
-            
-            for time_point, results_df in symptoms_time_results.items():
-                # Save results
-                result_file = tables_dir / f"{time_point}_{symptoms_var}_results.csv"
-                results_df.to_csv(result_file)
-                logging.info(f"Results for {time_point} by {symptoms_var} saved to {result_file}")
-        
-        # Analysis of Prior to Acute delta
-        logging.info("\n4.6 Analyzing changes from Prior to Acute timepoints")
-        if not args.skip_plots:
-            delta_dfs = analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output_dir)
-        
-        # Create subject trajectory plots if not skipped
-        if not args.skip_plots:
-            logging.info("\n4.7 Creating subject trajectory plots")
-            plot_subject_trajectory(abundance_df, metadata_df, species_indices, output_dir)
+        for time_point, results_df in symptoms_time_results.items():
+            # Save results
+            result_file = tables_dir / f"{time_point}_{symptoms_var}_results.csv"
+            results_df.to_csv(result_file)
+            logging.info(f"Results for {time_point} by {symptoms_var} saved to {result_file}")
+    
+    # New analyses added:
+    
+    # Analysis of Prior to Acute delta
+    logging.info("\n4.6 Analyzing changes from Prior to Acute timepoints")
+    delta_dfs = analyze_prior_acute_delta(abundance_df, metadata_df, species_indices, output_dir)
+    
+    # Create subject trajectory plots
+    logging.info("\n4.7 Creating subject trajectory plots")
+    plot_subject_trajectory(abundance_df, metadata_df, species_indices, output_dir)
     
     # Include info about the normalization method used in the results
-    normalization_info = {
-        'method': args.normalization
-    }
-    if args.normalization == 'rarefaction' and args.rarefaction_depth:
-        normalization_info['rarefaction_depth'] = args.rarefaction_depth
-    
-    # Save normalization info
-    with open(output_dir / 'normalization_info.txt', 'w') as f:
-        for key, value in normalization_info.items():
-            f.write(f"{key}: {value}\n")
-    
-    logging.info(f"\nNormalization method '{args.normalization}' info saved to {output_dir / 'normalization_info.txt'}")
+    if hasattr(args, 'normalization'):
+        normalization_info = {
+            'method': args.normalization
+        }
+        if args.normalization == 'rarefaction' and args.rarefaction_depth:
+            normalization_info['rarefaction_depth'] = args.rarefaction_depth
+        
+        # Save normalization info
+        with open(output_dir / 'normalization_info.txt', 'w') as f:
+            for key, value in normalization_info.items():
+                f.write(f"{key}: {value}\n")
+        
+        logging.info(f"\nNormalization method '{args.normalization}' info saved to {output_dir / 'normalization_info.txt'}")
     
     logging.info("\nAnalysis complete!")
-    
-    return {
-        'abundance_df': abundance_df,
-        'metadata_df': metadata_df,
-        'species_indices': species_indices
-    }
 
 if __name__ == "__main__":
     try:
-        # Parse command line arguments
-        args = parse_args()
-        
-        # Run the full analysis
-        run_analysis_pipeline(args)
-        
+        run_analysis_pipeline(args)    
     except Exception as e:
-        logging.error(f"Error in main execution: {str(e)}")
+        logging.info(f"Error in main execution: {str(e)}")
         traceback.print_exc()
-        sys.exit(1)
