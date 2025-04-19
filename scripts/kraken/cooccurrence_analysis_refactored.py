@@ -29,6 +29,7 @@ from pathlib import Path
 from scipy.stats import mannwhitneyu, kruskal, spearmanr
 from statsmodels.stats.multitest import multipletests
 import traceback
+import re  # Added missing import for regex
 
 # Add project root to Python path
 project_root = Path(__file__).resolve().parents[2]
@@ -71,7 +72,7 @@ def parse_args():
     parser.add_argument('--only-cooccurrence', action='store_true', help='Run only co-occurrence analysis')
     parser.add_argument('--skip-plots', action='store_true', help='Skip all plotting steps')
     parser.add_argument('--normalization', type=str, default='none',
-                      choices=['none', 'clr', 'rarefaction'],
+                      choices=['none', 'clr', 'rarefaction', 'tss'],  # Added 'tss' to match the code
                       help='Normalization method to use')
     parser.add_argument('--rarefaction-depth', type=int, default=None,
                       help='Sequencing depth for rarefaction (default: use minimum sample depth)')
@@ -137,8 +138,8 @@ def find_species_in_data(abundance_df, species_names):
     species_indices = {}
     
     for species in species_names:
-        
-        matches = [idx for idx in abundance_df.index if re.search(r'\\b' + re.escape(species.lower()) + r'\\b', idx.lower())]
+        # Fixed the regex pattern and backslash escaping
+        matches = [idx for idx in abundance_df.index if re.search(r'\b' + re.escape(species.lower()) + r'\b', idx.lower())]
 
         if matches:
             # Use the first match as the index
@@ -430,14 +431,13 @@ def analyze_species_by_timepoint_and_variable(abundance_df, metadata_df, species
         # Convert to DataFrame
         results_df = pd.DataFrame(results)
 
-    # Apply multiple testing correction
-    if not results_df.empty and 'p-value' in results_df.columns:
-        try:
-            corrected = multipletests(results_df['p-value'], method='fdr_bh')
-            results_df['p-adjusted'] = corrected[1]
-        except Exception as e:
-            logging.warning(f"Could not apply multiple testing correction: {str(e)}")
-
+        # Apply multiple testing correction
+        if not results_df.empty and 'p-value' in results_df.columns:
+            try:
+                corrected = multipletests(results_df['p-value'], method='fdr_bh')
+                results_df['p-adjusted'] = corrected[1]
+            except Exception as e:
+                logging.warning(f"Could not apply multiple testing correction: {str(e)}")
         
         # Store results
         time_results[time_point] = results_df
@@ -1440,7 +1440,7 @@ def plot_scatter_correlation(abundance_df, metadata_df, species_indices, output_
     logging.info(f"Saved correlation plot to {output_file}")
     plt.close()
 
-def run_analysis_pipeline(args):
+def run_analysis_pipeline():
     """Main function for analyzing species co-occurrence in microbiome data."""
     # Parse arguments
     args = parse_args()
@@ -1708,7 +1708,7 @@ def run_analysis_pipeline(args):
 
 if __name__ == "__main__":
     try:
-        run_analysis_pipeline(args)    
+        run_analysis_pipeline()    
     except Exception as e:
         logging.info(f"Error in main execution: {str(e)}")
         traceback.print_exc()
