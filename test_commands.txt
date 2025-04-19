@@ -3,9 +3,8 @@
 
 use the above command with --normalization clr (omitting --normalization-depth). This gives highly significant differences across timepoints.
 
-python scripts/kraken/cooccurence_analysis.py --input-file results/kraken_analysis/filtered_S_abundance.tsv --metadata metadata.csv --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" "Moraxella.catarrhalis" "Staphylococcus.aureus" --normalization clr
-
-python scripts/kraken/cooccurence_analysis_refactored.py --input-file results/kraken_analysis/filtered_S_abundance.tsv --metadata metadata.csv --target-species "Streptococcus.pneumoniae" 
+# this seems messed up. Use the command below
+#python scripts/kraken/cooccurence_analysis.py --input-file results/kraken_analysis/filtered_S_abundance.tsv --metadata metadata.csv --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" "Moraxella.catarrhalis" "Staphylococcus.aureus" --normalization clr
 
 python scripts/kraken/cooccurrence_analysis_refactored.py --input-file results/kraken_analysis/filtered_S_abundance.tsv --metadata metadata.csv --target-species "Streptococcus.pneumoniae" "Haemophilus.influenzae" "Moraxella.catarrhalis" "Staphylococcus.aureus" --normalization tss
 
