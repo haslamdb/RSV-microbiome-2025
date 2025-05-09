@@ -1,211 +1,251 @@
-# RSV-microbiome-2025
+# RSV-Microbiome-Analysis
 
 Analysis of nasal microbiome in relation to RSV infection severity and clinical outcomes.
 
 ## Project Overview
 
-This repository contains analysis code and workflows for studying the nasal microbiome in the context of RSV infections. The project supports multiple microbiome profiling tools including MetaPhlAn, Kraken2/Bracken, and Sylph to investigate relationships between nasal microbiome composition and RSV disease severity, symptoms, and clinical outcomes.
+This repository contains analysis code and workflows for studying the nasal microbiome in the context of RSV infections. The project supports multiple microbiome profiling tools including Kraken2/Bracken and Sylph to investigate relationships between nasal microbiome composition and RSV disease severity, symptoms, and clinical outcomes across different time points (Prior, Acute, Post).
 
 ## Directory Structure
 
 ```
-RSV-microbiome-2025/
-├── data/               # Data files
-│   ├── raw/            # Raw profiling output files (MetaPhlAn, Kraken, Sylph)
-│   └── processed/      # Processed abundance tables
-├── metadata.csv        # Sample and subject metadata
-├── notebooks/          # Jupyter notebooks for analysis
-├── scripts/            # Analysis scripts
-│   ├── bash_workflow.sh           # Complete MetaPhlAn workflow script
-│   ├── metaphlan/                 # MetaPhlAn analysis scripts
-│   │   ├── 01_process_metaphlan_files.py
-│   │   ├── 02_calculate_diversity.py
-│   │   ├── 03_differential_abundance.py
-│   │   ├── 04_longitudinal_analysis.py
-│   │   └── 05_generate_report.py
-│   ├── kraken/                    # Kraken/Bracken analysis scripts
-│   │   ├── 01_process_kraken_data.py
-│   │   ├── 02_kraken_differential_abundance.py
-│   │   ├── 03_generate_kraken_report.py
-│   │   ├── 04_cooccurence_analysis.py
-│   │   └── kraken_rsv_microbiome.sh
-│   ├── sylph/                     # Sylph analysis scripts
-│   │   ├── 01_sylph_parse_output.py
-│   │   ├── 02_analyze_sylph_data.py
-│   │   ├── 03_sylph_differential_abundance.py
-│   │   ├── 04_cooccurence_analysis.py
-│   │   ├── 05_generate_sylph_report.py
-│   │   └── sylph_rsv_microbiome.sh
-│   └── utils/          # Utility functions and parser patches
-│       └── parser_patch.py
-├── results/            # Analysis outputs (figures, tables)
-│   ├── figures/        # Generated figures
+RSV-Microbiome-Analysis/
+├── data/                # Data files
+│   ├── raw/             # Raw profiling output files (Kraken, Sylph)
+│   └── processed/       # Processed abundance tables
+├── metadata.csv         # Sample and subject metadata
+├── scripts/             # Analysis scripts
+│   ├── kraken/          # Kraken/Bracken analysis scripts
+│   │   ├── cooccurence_analysis.py             # Co-occurrence patterns analysis
+│   │   ├── feature_selection.py                # Variable importance analysis
+│   │   ├── fixed/                              # Fixed versions of analysis scripts
+│   │   ├── kraken_differential_abundance.py    # Differential abundance testing
+│   │   ├── kraken_permanova.py                 # PERMANOVA analysis
+│   │   ├── kraken_rf_shap.py                   # Random Forest with SHAP analysis
+│   │   ├── kraken_rsv_microbiome.sh            # Kraken2/Bracken workflow script
+│   │   ├── kraken_tsne.py                      # t-SNE visualization
+│   │   ├── process_kraken_data.py              # Process raw Kraken/Bracken data
+│   │   └── rf_shap_fixed.py                    # Fixed RF-SHAP implementation
+│   ├── sylph/           # Sylph analysis scripts
+│   │   ├── 01_sylph_parse_output.py            # Parse Sylph output files
+│   │   ├── 02_analyze_sylph_data.py            # General Sylph data analysis
+│   │   ├── 03_sylph_differential_abundance.py  # Differential abundance testing
+│   │   ├── 04_cooccurence_analysis.py          # Co-occurrence analysis
+│   │   ├── 05_generate_sylph_report.py         # Report generation
+│   │   └── sylph_rsv_microbiome.sh             # Sylph profiling workflow
+│   └── utils/           # Utility functions and helpers
+├── results/             # Analysis outputs (figures, tables)
+│   ├── figures/         # Generated figures
 │   │   ├── species_boxplots/      # Boxplots for significant species
 │   │   └── longitudinal_plots/    # Longitudinal analysis visualizations
 │   ├── kraken_analysis/           # Kraken analysis results
+│   │   ├── filtered_kraken_s_abundance.tsv     # Filtered species abundance
+│   │   ├── tables/                # Statistical results tables
+│   │   └── figures/               # Visualization figures
 │   ├── sylph_analysis/            # Sylph analysis results 
-│   └── tables/         # Generated data tables
-├── tools/              # Analysis tools
-│   ├── metaphlan_tools/  # Tools for MetaPhlAn analysis
-│   ├── kraken_tools/     # Tools for Kraken/Bracken analysis
-│   └── sylph_tools/      # Tools for Sylph microbiome analysis
-├── config/             # Configuration files
-│   └── analysis_parameters.yml    # Parameters for all analysis workflows
-└── docs/               # Documentation
+│   └── tables/          # Generated data tables
+├── config/              # Configuration files
+└── docs/                # Documentation
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.12 or higher
-- Git (with Git LFS for tracking large files)
-- Conda or Mamba (recommended for environment management)
+- Python 3.8 or higher
+- Git
+- Required Python packages (pandas, numpy, matplotlib, seaborn, scikit-bio, scikit-learn, shap, statsmodels)
 - For raw data analysis:
-  - MetaPhlAn v4.0+
   - Kraken2 and Bracken
   - Sylph
 
 ### Installation
 
-1. Clone the repository with submodules:
+1. Clone the repository:
    ```bash
-   git clone --recurse-submodules https://github.com/yourusername/RSV-microbiome-2025.git
-   cd RSV-microbiome-2025
+   git clone https://github.com/yourusername/RSV-Microbiome-Analysis.git
+   cd RSV-Microbiome-Analysis
    ```
 
-2. Create and activate the conda environment:
+2. Create and activate a conda environment:
    ```bash
-   conda env create -f environment.yml
+   conda create -n rsv-microbiome python=3.9 pandas numpy matplotlib seaborn scikit-learn statsmodels
    conda activate rsv-microbiome
+   pip install scikit-bio shap biom-format
    ```
 
-3. Install the analysis tools packages:
+3. Create necessary directories (if they don't exist):
    ```bash
-   # For all analysis tools
-   conda install conda-build
-   conda develop tools/metaphlan_tools
-   conda develop tools/kraken_tools
-   conda develop tools/sylph_tools
-   ```
-   
-   Alternatively, if you encounter issues, you can use pip:
-   ```bash
-   pip install -e tools/metaphlan_tools
-   pip install -e tools/kraken_tools
-   pip install -e tools/sylph_tools
+   mkdir -p data/raw data/processed results/kraken_analysis/{tables,figures} results/sylph_analysis
    ```
 
-4. Create necessary directories (if they don't exist):
-   ```bash
-   mkdir -p data/raw data/processed results/figures/species_boxplots results/figures/longitudinal_plots results/tables config
-   ```
+## Kraken2/Bracken Analysis Workflow
 
-5. Configure the analysis parameters:
-   ```bash
-   # If not already present
-   cp config/analysis_parameters.yml.example config/analysis_parameters.yml
-   # Edit the parameters as needed
-   ```
+The Kraken2/Bracken analysis workflow consists of several steps, from processing raw sequencing data to advanced statistical analysis.
 
-## Analysis Workflows
+### 1. Running Kraken2 and Bracken
 
-### MetaPhlAn Analysis
+The `kraken_rsv_microbiome.sh` script runs Kraken2 and Bracken on raw sequencing data:
 
 ```bash
-# Full MetaPhlAn workflow
-./scripts/bash_workflow.sh
-```
-
-The MetaPhlAn workflow includes:
-1. **Data Processing**: Combine MetaPhlAn outputs into abundance tables
-2. **Diversity Analysis**: Calculate and compare diversity metrics
-3. **Differential Abundance**: Identify taxa that differ between clinical groups
-4. **Longitudinal Analysis**: Track microbiome changes over the course of infection
-5. **Report Generation**: Create summary visualizations and findings
-
-Individual steps can be run separately:
-```bash
-python scripts/metaphlan/01_process_metaphlan_files.py
-python scripts/metaphlan/02_calculate_diversity.py
-python scripts/metaphlan/03_differential_abundance.py
-python scripts/metaphlan/04_longitudinal_analysis.py
-python scripts/metaphlan/05_generate_report.py
-```
-
-### Kraken/Bracken Analysis
-
-```bash
-# Run Kraken2 and Bracken on raw sequencing data
+# Run Kraken2 and Bracken on samples
 ./scripts/kraken/kraken_rsv_microbiome.sh
-
-# Process Kraken data and run all analyses with a single command
-./scripts/kraken/run_all_analyses.sh --kreport-dir path/to/kreports --bracken-dir path/to/bracken
-
-# Or run individual analysis steps
-python scripts/kraken/process_kraken_data.py --kreport-dir path/to/kreports --bracken-dir path/to/bracken
-python scripts/kraken/kraken_differential_abundance.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
-python scripts/kraken/kraken_permanova.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
-python scripts/kraken/kraken_rf_shap.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
-python scripts/kraken/kraken_tsne.py --abundance-file results/kraken_analysis/normalized_abundance.tsv
 ```
 
-The Kraken/Bracken workflow includes:
-1. **Data Processing**: Run Kraken2/Bracken on raw reads and process outputs
-2. **Data Normalization**: Apply CLR (centered log-ratio) or other normalization methods to the abundance data
-3. **Diversity Analysis**: Calculate alpha and beta diversity metrics
-4. **Differential Abundance**: Identify differentially abundant taxa between groups
-5. **PERMANOVA Analysis**: Test for significant associations between metadata variables and microbiome composition
-6. **Random Forest with SHAP**: Identify important taxa for predicting clinical outcomes
-7. **t-SNE Visualization**: Create dimensionality-reduced visualizations of microbiome data
-8. **Co-occurrence Analysis**: Study relationships between specific species
+This script:
+- Processes each sample with Kraken2 to assign taxonomic labels
+- Runs Bracken to improve abundance estimation at species, genus, and family levels
+- Outputs classification results (.kraken files) and reports (.kreport files)
+- Generates abundance estimates at species, genus, and family levels
 
-### Sylph Analysis
+### 2. Processing Kraken/Bracken Data
+
+The `process_kraken_data.py` script combines individual sample files into a unified abundance table:
 
 ```bash
-# Run Sylph on raw sequencing data
-./scripts/sylph/sylph_rsv_microbiome.sh
-
-# Process Sylph data and perform analyses
-python scripts/sylph/01_sylph_parse_output.py
-python scripts/sylph/02_analyze_sylph_data.py
-python scripts/sylph/03_sylph_differential_abundance.py
-python scripts/sylph/04_cooccurence_analysis.py
+python scripts/kraken/process_kraken_data.py \
+  --kreport-dir data/raw/KrakenReports \
+  --output-dir results/kraken_analysis \
+  --metadata metadata.csv \
+  --taxonomic-level S \
+  --min-abundance 0.01 \
+  --min-prevalence 0.1 \
+  --normalization clr
 ```
 
-The Sylph workflow includes:
-1. **Data Processing**: Parse Sylph profiling outputs for bacteria, viruses, and fungi
-2. **Diversity Analysis**: Calculate diversity metrics across samples
-3. **Differential Abundance**: Identify differentially abundant taxa between clinical groups
-4. **Co-occurrence Analysis**: Examine specific species relationships (similar to Kraken workflow)
-5. **Temporal Analysis**: Track microbiome changes over time (Prior, Acute, Post)
+Key features:
+- Combines abundance data from multiple samples
+- Filters out human reads
+- Filters low-abundance and low-prevalence taxa
+- Applies normalization (CLR, rarefaction, or other methods)
+- Joins with metadata for downstream analysis
+- Creates abundance tables at different taxonomic levels
 
-## Tool Comparison
+### 3. Co-occurrence Analysis
 
-The repository supports three different profiling tools, each with its strengths:
+The `cooccurence_analysis.py` script analyzes relationships between specific bacterial species:
 
-- **MetaPhlAn**: Marker gene-based approach with detailed taxonomic resolution
-- **Kraken2/Bracken**: Fast k-mer based classification with good accuracy
-- **Sylph**: Modern sketching-based profiler with support for bacteria, viruses, and fungi
+```bash
+python scripts/kraken/cooccurence_analysis.py \
+  --input-file results/kraken_analysis/filtered_kraken_s_abundance.tsv \
+  --metadata metadata.csv \
+  --output-dir results/kraken_analysis/cooccurrence \
+  --target-species "Streptococcus pneumoniae,Haemophilus influenzae,Moraxella catarrhalis"
+```
 
-## Metadata
+This analysis:
+- Examines co-occurrence patterns between specified species (especially S. pneumoniae and H. influenzae)
+- Analyzes abundance patterns across time points (Prior, Acute, Post)
+- Compares abundance between severity and symptom groups
+- Generates visualizations for species correlations
+- Creates faceted boxplots for each species across time points and clinical groups
 
-The metadata.csv file contains the following key variables:
+### 4. Differential Abundance Analysis
 
-- **SampleID**: Unique identifier for each sample
-- **SubjectID**: Identifier for each subject (patient)
-- **CollectionDate**: Date of sample collection
-- **Timing**: Timing relative to infection (Prior, Acute, Post)
-- **Severity**: Severity score of RSV infection
-- **Symptoms**: Symptom classification (Asymptomatic, Mild, Severe)
+The `kraken_differential_abundance.py` script identifies taxa that differ significantly between groups:
 
-## Key Analyses
+```bash
+python scripts/kraken/kraken_differential_abundance.py \
+  --abundance-file results/kraken_analysis/filtered_kraken_s_abundance.tsv \
+  --output-dir results/kraken_analysis/differential_abundance \
+  --group-col Timing \
+  --method kruskal \
+  --p-threshold 0.05
+```
+
+Features:
+- Performs statistical testing (Kruskal-Wallis, ANOVA, t-test)
+- Applies multiple testing correction
+- Generates boxplots for significant species
+- Supports different grouping variables (Timing, Severity, Symptoms)
+
+### 5. PERMANOVA Analysis
+
+The `kraken_permanova.py` script tests for significant associations between metadata variables and microbiome composition:
+
+```bash
+python scripts/kraken/kraken_permanova.py \
+  --abundance-file results/kraken_analysis/filtered_kraken_s_abundance.tsv \
+  --metadata metadata.csv \
+  --output-dir results/kraken_analysis/permanova \
+  --categorical-vars Timing,Severity,Symptoms \
+  --distance-metric bray \
+  --transform clr
+```
+
+This script:
+- Calculates beta diversity distances between samples
+- Performs PERMANOVA tests for each categorical variable
+- Generates ordination plots (PCoA and NMDS)
+- Creates summary reports with p-values and R² values
+
+### 6. Random Forest with SHAP Analysis
+
+The `kraken_rf_shap.py` script identifies important variables using Random Forest and SHAP values:
+
+```bash
+python scripts/kraken/kraken_rf_shap.py \
+  --abundance-file results/kraken_analysis/filtered_kraken_s_abundance.tsv \
+  --metadata metadata.csv \
+  --output-dir results/kraken_analysis/rf_shap \
+  --target-taxa "top" \
+  --predictors Timing,Severity,Symptoms \
+  --random-effects SubjectID
+```
+
+Features:
+- Trains Random Forest models to predict microbe abundance
+- Calculates SHAP values to explain model predictions
+- Identifies the most important clinical variables for each taxon
+- Fits mixed-effects models to account for repeated measurements
+- Generates SHAP summary plots and feature importance visualizations
+
+### 7. Feature Selection
+
+The `feature_selection.py` script identifies clinical variables associated with microbiome differences:
+
+```bash
+python scripts/kraken/feature_selection.py \
+  --abundance-file results/kraken_analysis/filtered_kraken_s_abundance.tsv \
+  --metadata metadata.csv \
+  --output-dir results/kraken_analysis/feature_selection \
+  --predictors "Age,Gender,Severity,Symptoms" \
+  --distance-metric bray \
+  --transform clr
+```
+
+This analysis:
+- Creates pairwise differences between samples for both microbiome and metadata
+- Trains a Random Forest model to predict microbiome distances from metadata differences
+- Identifies which variables best explain differences in microbiome composition
+- Generates visualizations of feature importance
+
+### 8. t-SNE Visualization
+
+The `kraken_tsne.py` script creates dimensionality-reduced visualizations of microbiome data:
+
+```bash
+python scripts/kraken/kraken_tsne.py \
+  --abundance-file results/kraken_analysis/filtered_kraken_s_abundance.tsv \
+  --metadata metadata.csv \
+  --output-dir results/kraken_analysis/tsne \
+  --categorical-vars Timing,Severity,Symptoms \
+  --transform clr \
+  --perplexity 30
+```
+
+Features:
+- Creates t-SNE visualizations to reveal patterns in high-dimensional data
+- Colors points by different metadata variables
+- Helps visualize clustering of samples by clinical factors
+
+## Key Analyses and Findings
 
 ### Diversity Analysis
 
-All three workflows include comprehensive diversity analysis:
+The Kraken workflow includes comprehensive diversity analysis:
 - **Alpha Diversity**: Shannon, Simpson, observed species
-- **Beta Diversity**: Bray-Curtis, weighted/unweighted UniFrac
+- **Beta Diversity**: Bray-Curtis, Jaccard, Euclidean distances
 - **Ordination**: PCoA and NMDS for visualization
 
 ### Differential Abundance
@@ -217,14 +257,18 @@ Identify significant differences in microbial abundance:
 
 ### Co-occurrence Analysis
 
-The repository includes specialized scripts for co-occurrence analysis:
-- Built-in focus on S. pneumoniae and H. influenzae interactions
+Special focus on relationships between specific bacterial species:
+- S. pneumoniae and H. influenzae interactions
+- M. catarrhalis relationships with other species
 - Cross-timepoint analysis of species co-occurrence
+- Correlation networks of interacting species
 
 ### Longitudinal Analysis
 
 Track changes in the microbiome over the course of RSV infection:
 - Visualize species abundance across time points
+- Create subject trajectory plots to track individual changes
+- Analyze changes from Prior to Acute and from Acute to Post timepoints
 - Identify species with significant temporal patterns
 
 ## Advanced Features
@@ -235,99 +279,65 @@ The Kraken/Bracken workflow includes several normalization methods to transform 
 
 ```bash
 # Apply CLR normalization (default)
-./scripts/kraken/run_all_analyses.sh --kreport-dir path/to/kreports --norm-method clr
+python scripts/kraken/process_kraken_data.py --normalization clr
 
-# Apply relative abundance normalization (0-1 scale)
-./scripts/kraken/run_all_analyses.sh --norm-method relabundance
-
-# Apply counts per million normalization
-./scripts/kraken/run_all_analyses.sh --norm-method cpm
-
-# Apply log10 transformation
-./scripts/kraken/run_all_analyses.sh --norm-method log10
-
-# Disable normalization
-./scripts/kraken/run_all_analyses.sh --no-normalize
+# Apply rarefaction normalization (for count data)
+python scripts/kraken/process_kraken_data.py --normalization rarefaction --rarefaction-depth 10000
 ```
 
 Available normalization methods:
-- **CLR (Centered Log-Ratio)**: Handles compositional data by log-transforming after dividing by the geometric mean (default method)
-- **Relative Abundance**: Converts counts to proportions (0-1 scale)
-- **CPM (Counts Per Million)**: Scales data to counts per million
-- **Log10**: Log10 transformation with a small pseudocount to avoid log(0)
+- **CLR (Centered Log-Ratio)**: Handles compositional data by log-transforming after dividing by the geometric mean
+- **Rarefaction**: Subsamples to equal depth across samples
+- **Relative Abundance**: Converts counts to percentages
 
-The normalization is automatically applied after filtering and before all downstream analyses.
+### Mixed-Effects Modeling
 
-### Correlation Networks
+The RF-SHAP analysis includes mixed-effects modeling to account for repeated measurements:
 
-```python
-# For any of the analysis tools
-from metaphlan_tools.viz import plot_correlation_network
-from kraken_tools.analysis.network import plot_species_correlation_network
-from sylph_tools import plot_correlation_network
+```bash
+python scripts/kraken/kraken_rf_shap.py --random-effects SubjectID
 ```
 
-### Robust Parsing
-
-The repository includes enhanced parsers for handling various file formats:
-
-```python
-from scripts.utils.parser_patch import patched_parse_metaphlan_file, patched_combine_samples
-```
-
-### Taxonomic Analysis
-
-Extract and analyze taxonomy information:
-
-```python
-from kraken_tools.analysis.taxonomy import read_and_process_taxonomy
-from sylph_tools import add_taxonomy_metadata
-```
+This helps account for subject-specific effects when analyzing longitudinal data.
 
 ### PERMANOVA Analysis
 
-The Kraken workflow includes PERMANOVA (Permutational Multivariate Analysis of Variance) to test how metadata variables explain microbiome composition:
+PERMANOVA helps identify which factors (e.g., disease severity, timing) significantly influence microbiome structure:
 
 ```bash
-# Run PERMANOVA analysis with specific categorical variables
-python scripts/kraken/kraken_permanova.py --abundance-file results/kraken_analysis/normalized_abundance.tsv \
-  --categorical-vars Timing,Severity,Symptoms --distance-metric bray --transform clr
+python scripts/kraken/kraken_permanova.py --categorical-vars Timing,Severity,Symptoms
 ```
 
-PERMANOVA helps identify which factors (e.g., disease severity, timing) significantly influence microbiome structure.
+The analysis reports R² values (effect sizes) and p-values for each variable.
 
 ### Random Forest with SHAP
 
-The RF-SHAP analysis combines Random Forest machine learning with SHAP (SHapley Additive exPlanations) values to identify the most important taxa for prediction:
+The RF-SHAP analysis helps identify which bacterial species are most predictive of clinical outcomes:
 
 ```bash
-# Run RF-SHAP analysis
-python scripts/kraken/kraken_rf_shap.py --abundance-file results/kraken_analysis/normalized_abundance.tsv \
-  --predictors Timing,Severity,Symptoms --random-effects SubjectID
+python scripts/kraken/kraken_rf_shap.py --predictors Timing,Severity,Symptoms
 ```
 
-This analysis helps identify which bacterial species are most predictive of clinical outcomes.
+SHAP values provide both global importance and the direction of effect for each variable.
 
-### t-SNE Visualization
+## Sylph Analysis
 
-The t-SNE (t-Distributed Stochastic Neighbor Embedding) visualization creates low-dimensional representations of the microbiome data:
+The repository also includes similar analysis capabilities for Sylph, a modern sketching-based profiler with support for bacteria, viruses, and fungi:
 
 ```bash
-# Generate t-SNE plots
-python scripts/kraken/kraken_tsne.py --abundance-file results/kraken_analysis/normalized_abundance.tsv \
-  --categorical-vars Timing,Severity,Symptoms
+# Run Sylph profiling
+./scripts/sylph/sylph_rsv_microbiome.sh
+
+# Process Sylph outputs
+python scripts/sylph/01_sylph_parse_output.py
+
+# Run analyses
+python scripts/sylph/02_analyze_sylph_data.py
+python scripts/sylph/03_sylph_differential_abundance.py
+python scripts/sylph/04_cooccurence_analysis.py
 ```
 
-t-SNE helps visualize sample clustering and relationships between samples in different clinical groups.
-
-## Contributing
-
-Please follow these steps to contribute to the project:
-
-1. Create a new branch for your feature or bugfix
-2. Make your changes
-3. Run tests to ensure functionality
-4. Submit a pull request with a clear description of the changes
+The Sylph workflow provides similar capabilities to the Kraken workflow, with the added benefit of viral and fungal profiling.
 
 ## License
 
